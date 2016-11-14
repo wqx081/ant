@@ -6,7 +6,7 @@ CFLAGS += -I./
 CFLAGS += -Wall -g -c -o
 
 LIB_FILES :=-lglog -lgflags -levent  -lpthread -lssl -lcrypto -lz
-TEST_LIB_FILES :=  -L/usr/local/lib -lgtest -lgtest_main -lpthread
+TEST_LIB_FILES :=  -L/usr/local/lib -lgtest -lgtest_main -lpthread -lprotobuf
 
 PROTOC = protoc
 GRPC_CPP_PLUGIN=grpc_cpp_plugin
@@ -66,6 +66,13 @@ CPP_SOURCES := \
 	./ant/util/thread_stats.cc \
 	./ant/util/atomic.cc \
 	./ant/util/semaphore.cc \
+	./ant/util/jsonwriter.cc \
+	./ant/util/locks.cc \
+	./ant/util/metrics.cc \
+	./ant/util/striped64.cc \
+	./ant/util/threadlocal.cc \
+	./ant/util/hdr_histogram.cc \
+	./ant/util/histogram.pb.cc \
 
 C_OBJECTS := $(C_SOURCES:.c=.o)
 

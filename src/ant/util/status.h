@@ -78,7 +78,8 @@
 ///   defined above.
 /// @li Namespaced versions of glog macros are mapped to the real glog macros
 ///   (otherwise the macros are defined in the C++ client stubs).
-#ifdef KUDU_HEADERS_USE_SHORT_STATUS_MACROS
+//
+//#ifdef KUDU_HEADERS_USE_SHORT_STATUS_MACROS
 #define RETURN_NOT_OK         KUDU_RETURN_NOT_OK
 #define RETURN_NOT_OK_PREPEND KUDU_RETURN_NOT_OK_PREPEND
 #define RETURN_NOT_OK_RET     KUDU_RETURN_NOT_OK_RET
@@ -91,7 +92,7 @@
 // These are standard glog macros.
 #define KUDU_LOG              LOG
 #define KUDU_CHECK            CHECK
-#endif
+//#endif
 
 namespace ant {
 
