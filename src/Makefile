@@ -62,6 +62,10 @@ CPP_SOURCES := \
 	./ant/util/monotime.cc \
 	./ant/util/mutex.cc \
 	./ant/util/condition_variable.cc \
+	./ant/util/errno.cc \
+	./ant/util/thread_stats.cc \
+	./ant/util/atomic.cc \
+	./ant/util/semaphore.cc \
 
 C_OBJECTS := $(C_SOURCES:.c=.o)
 
