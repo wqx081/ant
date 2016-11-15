@@ -77,6 +77,7 @@ class  Slice {
     data_(reinterpret_cast<const uint8_t *>(s)),
     size_(strlen(s)) { }
 
+#define KUDU_HEADERS_USE_RICH_SLICE 1
 #ifdef KUDU_HEADERS_USE_RICH_SLICE
   /// Create a slice that refers to the contents of a faststring.
   ///

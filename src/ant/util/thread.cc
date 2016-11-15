@@ -22,13 +22,13 @@
 #include "ant/base/once.h"
 #include "ant/base/strings/substitute.h"
 #include "ant/util/errno.h"
-#include "ant/util/kernel_stack_watchdog.h"
+//#include "ant/util/kernel_stack_watchdog.h"
 #include "ant/util/metrics.h"
 #include "ant/util/mutex.h"
 #include "ant/util/thread_stats.h"
 #include "ant/util/stopwatch.h"
-#include "ant/util/url-coding.h"
-#include "ant/util/trace.h"
+#include "ant/util/base64.h"
+#include "ant/util/url_coding.h"
 #include "ant/util/web_callback_registry.h"
 
 using std::bind;
@@ -204,16 +204,7 @@ void ThreadMgr::SetThreadName(const string& name, int64 tid) {
     return;
   }
 
-#if defined(__linux__)
-  // http://0pointer.de/blog/projects/name-your-threads.html
-  // Set the name for the LWP (which gets truncated to 15 characters).
-  // Note that glibc also has a 'pthread_setname_np' api, but it may not be
-  // available everywhere and it's only benefit over using prctl directly is
-  // that it can set the name of threads other than the current thread.
   int err = prctl(PR_SET_NAME, name.c_str());
-#else
-  int err = pthread_setname_np(name.c_str());
-#endif // defined(__linux__)
   // We expect EPERM failures in sandboxed processes, just ignore those.
   if (err < 0 && errno != EPERM) {
     PLOG(ERROR) << "SetThreadName";
@@ -229,25 +220,25 @@ Status ThreadMgr::StartInstrumentation(const scoped_refptr<MetricEntity>& metric
   // multiple tservers, even though the ThreadMgr is itself a singleton.
   metrics->NeverRetire(
       METRIC_threads_started.InstantiateFunctionGauge(metrics,
-        Bind(&ThreadMgr::ReadThreadsStarted, Unretained(this))));
+        base::Bind(&ThreadMgr::ReadThreadsStarted, base::Unretained(this))));
   metrics->NeverRetire(
       METRIC_threads_running.InstantiateFunctionGauge(metrics,
-        Bind(&ThreadMgr::ReadThreadsRunning, Unretained(this))));
+        base::Bind(&ThreadMgr::ReadThreadsRunning, base::Unretained(this))));
   metrics->NeverRetire(
       METRIC_cpu_utime.InstantiateFunctionGauge(metrics,
-        Bind(&GetCpuUTime)));
+        base::Bind(&GetCpuUTime)));
   metrics->NeverRetire(
       METRIC_cpu_stime.InstantiateFunctionGauge(metrics,
-        Bind(&GetCpuSTime)));
+        base::Bind(&GetCpuSTime)));
   metrics->NeverRetire(
       METRIC_voluntary_context_switches.InstantiateFunctionGauge(metrics,
-        Bind(&GetVoluntaryContextSwitches)));
+        base::Bind(&GetVoluntaryContextSwitches)));
   metrics->NeverRetire(
       METRIC_involuntary_context_switches.InstantiateFunctionGauge(metrics,
-        Bind(&GetInVoluntaryContextSwitches)));
+        base::Bind(&GetInVoluntaryContextSwitches)));
 
   WebCallbackRegistry::PathHandlerCallback thread_callback =
-      bind<void>(mem_fn(&ThreadMgr::ThreadPathHandler), this, _1, _2);
+      bind<void>(mem_fn(&ThreadMgr::ThreadPathHandler), this, std::placeholders::_1, std::placeholders::_2);
   DCHECK_NOTNULL(web)->RegisterPathHandler("/threadz", "Threads", thread_callback);
   return Status::OK();
 }
@@ -312,8 +303,7 @@ void ThreadMgr::PrintThreadCategoryRows(const ThreadCategory& category,
     ThreadStats stats;
     Status status = GetThreadStats(thread.second.thread_id(), &stats);
     if (!status.ok()) {
-      KLOG_EVERY_N(INFO, 100) << "Could not get per-thread statistics: "
-                              << status.ToString();
+      //KLOG_EVERY_N(INFO, 100) << "Could not get per-thread statistics: " << status.ToString();
     }
     (*output) << "<tr><td>" << thread.second.name() << "</td><td>"
               << (static_cast<double>(stats.user_ns) / 1e9) << "</td><td>"
@@ -374,7 +364,7 @@ void ThreadMgr::ThreadPathHandler(const WebCallbackRegistry::WebRequest& req,
 static void InitThreading() {
   // Warm up the stack trace library. This avoids a race in libunwind initialization
   // by making sure we initialize it before we start any other threads.
-  ignore_result(GetStackTraceHex());
+  // ignore_result(GetStackTraceHex());
   thread_manager.reset(new ThreadMgr());
 }
 
@@ -463,7 +453,7 @@ Thread::~Thread() {
   }
 }
 
-void Thread::CallAtExit(const Closure& cb) {
+void Thread::CallAtExit(const base::Closure& cb) {
   CHECK_EQ(Thread::current_thread(), this);
   exit_callbacks_.push_back(cb);
 }
@@ -473,10 +463,10 @@ std::string Thread::ToString() const {
 }
 
 Status Thread::StartThread(const std::string& category, const std::string& name,
-                           const ThreadFunctor& functor, uint64_t flags,
+                           const ThreadFunctor& functor, uint64_t /* flags */,
                            scoped_refptr<Thread> *holder) {
-  TRACE_COUNTER_INCREMENT("threads_started", 1);
-  TRACE_COUNTER_SCOPE_LATENCY_US("thread_start_us");
+  // TRACE_COUNTER_INCREMENT("threads_started", 1);
+  // TRACE_COUNTER_SCOPE_LATENCY_US("thread_start_us");
   const string log_prefix = Substitute("$0 ($1) ", name, category);
   SCOPED_LOG_SLOW_EXECUTION_PREFIX(WARNING, 500 /* ms */, log_prefix, "starting thread");
 
@@ -485,7 +475,7 @@ Status Thread::StartThread(const std::string& category, const std::string& name,
 
   {
     SCOPED_LOG_SLOW_EXECUTION_PREFIX(WARNING, 500 /* ms */, log_prefix, "creating pthread");
-    SCOPED_WATCH_STACK((flags & NO_STACK_WATCHDOG) ? 0 : 250);
+    //SCOPED_WATCH_STACK((flags & NO_STACK_WATCHDOG) ? 0 : 250);
     int ret = pthread_create(&t->thread_, NULL, &Thread::SuperviseThread, t.get());
     if (ret) {
       return Status::RuntimeError("Could not create thread", strerror(ret), ret);
@@ -516,7 +506,7 @@ Status Thread::StartThread(const std::string& category, const std::string& name,
     SCOPED_LOG_SLOW_EXECUTION_PREFIX(WARNING, 500 /* ms */, log_prefix,
                                      "waiting for new thread to publish its TID");
     int loop_count = 0;
-    while (Acquire_Load(&t->tid_) == PARENT_WAITING_TID) {
+    while (base::subtle::Acquire_Load(&t->tid_) == PARENT_WAITING_TID) {
       boost::detail::yield(loop_count++);
     }
   }
@@ -530,7 +520,7 @@ void* Thread::SuperviseThread(void* arg) {
   int64_t system_tid = Thread::CurrentThreadId();
   if (system_tid == -1) {
     string error_msg = ErrnoToString(errno);
-    KLOG_EVERY_N(INFO, 100) << "Could not determine thread ID: " << error_msg;
+    //KLOG_EVERY_N(INFO, 100) << "Could not determine thread ID: " << error_msg;
   }
   string name = strings::Substitute("$0-$1", t->name(), system_tid);
 
@@ -551,7 +541,7 @@ void* Thread::SuperviseThread(void* arg) {
   // Wait until the parent has updated all caller-visible state, then write
   // the TID to 'tid_', thus completing the parent<-->child handshake.
   int loop_count = 0;
-  while (Acquire_Load(&t->tid_) == CHILD_WAITING_TID) {
+  while (base::subtle::Acquire_Load(&t->tid_) == CHILD_WAITING_TID) {
     boost::detail::yield(loop_count++);
   }
   Release_Store(&t->tid_, system_tid);
@@ -572,7 +562,7 @@ void* Thread::SuperviseThread(void* arg) {
 void Thread::FinishThread(void* arg) {
   Thread* t = static_cast<Thread*>(arg);
 
-  for (Closure& c : t->exit_callbacks_) {
+  for (base::Closure& c : t->exit_callbacks_) {
     c.Run();
   }
 

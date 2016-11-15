@@ -5,7 +5,7 @@ CXXFLAGS += -std=c++11 -Wall -Werror -Wno-deprecated -g -c -o
 CFLAGS += -I./
 CFLAGS += -Wall -g -c -o
 
-LIB_FILES :=-lglog -lgflags -levent  -lpthread -lssl -lcrypto -lz
+LIB_FILES :=-lglog -lgflags -levent  -lpthread -lssl -lcrypto -lz -lev -lsasl
 TEST_LIB_FILES :=  -L/usr/local/lib -lgtest -lgtest_main -lpthread -lprotobuf
 
 PROTOC = protoc
@@ -67,12 +67,47 @@ CPP_SOURCES := \
 	./ant/util/atomic.cc \
 	./ant/util/semaphore.cc \
 	./ant/util/jsonwriter.cc \
+	./ant/util/jsonreader.cc \
 	./ant/util/locks.cc \
 	./ant/util/metrics.cc \
 	./ant/util/striped64.cc \
-	./ant/util/threadlocal.cc \
 	./ant/util/hdr_histogram.cc \
 	./ant/util/histogram.pb.cc \
+	./ant/util/base64.cc \
+	./ant/util/url_coding.cc \
+	./ant/util/thread.cc \
+	./ant/util/threadlocal.cc \
+	./ant/util/threadpool.cc \
+	./ant/util/env.cc \
+	./ant/util/env_posix.cc \
+	./ant/util/path_util.cc \
+	./ant/util/random_util.cc \
+	./ant/util/failure_detector.cc \
+	./ant/util/throttler.cc \
+	\
+	./ant/util/net/socket.cc \
+	./ant/util/net/sockaddr.cc \
+	./ant/util/net/net_util.cc \
+	./ant/util/net/dns_resolver.cc \
+	./ant/util/net/ssl_socket.cc \
+	./ant/util/net/ssl_factory.cc \
+	\
+	./ant/util/x509_check_host.cc \
+	./ant/util/subprocess.cc \
+	./ant/util/memory/arena.cc \
+	./ant/util/memory/memory.cc \
+	./ant/util/memory/overwrite.cc \
+	./ant/util/mem_tracker.cc \
+	./ant/util/trace_metrics.cc \
+	./ant/util/trace.cc \
+	\
+	./ant/rpc/constants.cc \
+	./ant/rpc/rpc_header.pb.cc \
+	./ant/rpc/serialization.cc \
+	./ant/rpc/transfer.cc \
+	./ant/rpc/remote_method.cc \
+	./ant/rpc/rpc_introspection.pb.cc \
+
 
 C_OBJECTS := $(C_SOURCES:.c=.o)
 

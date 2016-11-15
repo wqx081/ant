@@ -237,7 +237,7 @@ class Env {
   //
   // Returning an error won't halt the walk, but it will cause it to return
   // with an error status when it's done.
-  typedef Callback<Status(FileType,const std::string&, const std::string&)> WalkCallback;
+  typedef base::Callback<Status(FileType,const std::string&, const std::string&)> WalkCallback;
 
   // Whether to walk directories in pre-order or post-order.
   enum DirectoryOrder {
@@ -535,100 +535,100 @@ class EnvWrapper : public Env {
   Env* target() const { return target_; }
 
   // The following text is boilerplate that forwards all methods to target()
-  Status NewSequentialFile(const std::string& f, gscoped_ptr<SequentialFile>* r) OVERRIDE {
+  Status NewSequentialFile(const std::string& f, gscoped_ptr<SequentialFile>* r) override {
     return target_->NewSequentialFile(f, r);
   }
   Status NewRandomAccessFile(const std::string& f,
-                             gscoped_ptr<RandomAccessFile>* r) OVERRIDE {
+                             gscoped_ptr<RandomAccessFile>* r) override {
     return target_->NewRandomAccessFile(f, r);
   }
   Status NewRandomAccessFile(const RandomAccessFileOptions& opts,
                              const std::string& f,
-                             gscoped_ptr<RandomAccessFile>* r) OVERRIDE {
+                             gscoped_ptr<RandomAccessFile>* r) override {
     return target_->NewRandomAccessFile(opts, f, r);
   }
-  Status NewWritableFile(const std::string& f, gscoped_ptr<WritableFile>* r) OVERRIDE {
+  Status NewWritableFile(const std::string& f, gscoped_ptr<WritableFile>* r) override {
     return target_->NewWritableFile(f, r);
   }
   Status NewWritableFile(const WritableFileOptions& o,
                          const std::string& f,
-                         gscoped_ptr<WritableFile>* r) OVERRIDE {
+                         gscoped_ptr<WritableFile>* r) override {
     return target_->NewWritableFile(o, f, r);
   }
   Status NewTempWritableFile(const WritableFileOptions& o, const std::string& t,
-                             std::string* f, gscoped_ptr<WritableFile>* r) OVERRIDE {
+                             std::string* f, gscoped_ptr<WritableFile>* r) override {
     return target_->NewTempWritableFile(o, t, f, r);
   }
-  Status NewRWFile(const std::string& f, gscoped_ptr<RWFile>* r) OVERRIDE {
+  Status NewRWFile(const std::string& f, gscoped_ptr<RWFile>* r) override {
     return target_->NewRWFile(f, r);
   }
   Status NewRWFile(const RWFileOptions& o,
                    const std::string& f,
-                   gscoped_ptr<RWFile>* r) OVERRIDE {
+                   gscoped_ptr<RWFile>* r) override {
     return target_->NewRWFile(o, f, r);
   }
   Status NewTempRWFile(const RWFileOptions& o, const std::string& t,
-                       std::string* f, gscoped_ptr<RWFile>* r) OVERRIDE {
+                       std::string* f, gscoped_ptr<RWFile>* r) override {
     return target_->NewTempRWFile(o, t, f, r);
   }
-  bool FileExists(const std::string& f) OVERRIDE { return target_->FileExists(f); }
-  Status GetChildren(const std::string& dir, std::vector<std::string>* r) OVERRIDE {
+  bool FileExists(const std::string& f) override { return target_->FileExists(f); }
+  Status GetChildren(const std::string& dir, std::vector<std::string>* r) override {
     return target_->GetChildren(dir, r);
   }
-  Status DeleteFile(const std::string& f) OVERRIDE { return target_->DeleteFile(f); }
-  Status CreateDir(const std::string& d) OVERRIDE { return target_->CreateDir(d); }
-  Status SyncDir(const std::string& d) OVERRIDE { return target_->SyncDir(d); }
-  Status DeleteDir(const std::string& d) OVERRIDE { return target_->DeleteDir(d); }
-  Status DeleteRecursively(const std::string& d) OVERRIDE { return target_->DeleteRecursively(d); }
-  Status GetFileSize(const std::string& f, uint64_t* s) OVERRIDE {
+  Status DeleteFile(const std::string& f) override { return target_->DeleteFile(f); }
+  Status CreateDir(const std::string& d) override { return target_->CreateDir(d); }
+  Status SyncDir(const std::string& d) override { return target_->SyncDir(d); }
+  Status DeleteDir(const std::string& d) override { return target_->DeleteDir(d); }
+  Status DeleteRecursively(const std::string& d) override { return target_->DeleteRecursively(d); }
+  Status GetFileSize(const std::string& f, uint64_t* s) override {
     return target_->GetFileSize(f, s);
   }
-  Status GetFileSizeOnDisk(const std::string& f, uint64_t* s) OVERRIDE {
+  Status GetFileSizeOnDisk(const std::string& f, uint64_t* s) override {
     return target_->GetFileSizeOnDisk(f, s);
   }
-  Status GetFileSizeOnDiskRecursively(const std::string& root, uint64_t* bytes_used) OVERRIDE {
+  Status GetFileSizeOnDiskRecursively(const std::string& root, uint64_t* bytes_used) override {
     return target_->GetFileSizeOnDiskRecursively(root, bytes_used);
   }
-  Status GetBlockSize(const std::string& f, uint64_t* s) OVERRIDE {
+  Status GetBlockSize(const std::string& f, uint64_t* s) override {
     return target_->GetBlockSize(f, s);
   }
-  Status GetBytesFree(const std::string& path, int64_t* bytes_free) OVERRIDE {
+  Status GetBytesFree(const std::string& path, int64_t* bytes_free) override {
     return target_->GetBytesFree(path, bytes_free);
   }
-  Status RenameFile(const std::string& s, const std::string& t) OVERRIDE {
+  Status RenameFile(const std::string& s, const std::string& t) override {
     return target_->RenameFile(s, t);
   }
-  Status LockFile(const std::string& f, FileLock** l) OVERRIDE {
+  Status LockFile(const std::string& f, FileLock** l) override {
     return target_->LockFile(f, l);
   }
-  Status UnlockFile(FileLock* l) OVERRIDE { return target_->UnlockFile(l); }
-  virtual Status GetTestDirectory(std::string* path) OVERRIDE {
+  Status UnlockFile(FileLock* l) override { return target_->UnlockFile(l); }
+  virtual Status GetTestDirectory(std::string* path) override {
     return target_->GetTestDirectory(path);
   }
-  uint64_t NowMicros() OVERRIDE {
+  uint64_t NowMicros() override {
     return target_->NowMicros();
   }
-  void SleepForMicroseconds(int micros) OVERRIDE {
+  void SleepForMicroseconds(int micros) override {
     target_->SleepForMicroseconds(micros);
   }
-  uint64_t gettid() OVERRIDE {
+  uint64_t gettid() override {
     return target_->gettid();
   }
-  Status GetExecutablePath(std::string* path) OVERRIDE {
+  Status GetExecutablePath(std::string* path) override {
     return target_->GetExecutablePath(path);
   }
-  Status IsDirectory(const std::string& path, bool* is_dir) OVERRIDE {
+  Status IsDirectory(const std::string& path, bool* is_dir) override {
     return target_->IsDirectory(path, is_dir);
   }
   Status Walk(const std::string& root,
               DirectoryOrder order,
-              const WalkCallback& cb) OVERRIDE {
+              const WalkCallback& cb) override {
     return target_->Walk(root, order, cb);
   }
-  Status Canonicalize(const std::string& path, std::string* result) OVERRIDE {
+  Status Canonicalize(const std::string& path, std::string* result) override {
     return target_->Canonicalize(path, result);
   }
-  Status GetTotalRAMBytes(int64_t* ram) OVERRIDE {
+  Status GetTotalRAMBytes(int64_t* ram) override {
     return target_->GetTotalRAMBytes(ram);
   }
  private:

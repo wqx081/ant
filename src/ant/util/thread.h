@@ -8,10 +8,6 @@
 #include <string>
 #include <vector>
 
-//#include <boost/bind.hpp>
-//#include <boost/function.hpp>
-
-
 #include <functional>
 
 #include "ant/base/atomicops.h"
@@ -190,7 +186,7 @@ class Thread : public base::RefCountedThreadSafe<Thread> {
   // thread).
   //
   // This callback is guaranteed to be called except in the case of a process crash.
-  void CallAtExit(const Closure& cb);
+  void CallAtExit(const base::Closure& cb);
 
   // The thread ID assigned to this thread by the operating system. If the OS does not
   // support retrieving the tid, returns Thread::INVALID_TID.
@@ -288,7 +284,7 @@ class Thread : public base::RefCountedThreadSafe<Thread> {
   // thread is not a Thread.
   static __thread Thread* tls_;
 
-  std::vector<Closure> exit_callbacks_;
+  std::vector<base::Closure> exit_callbacks_;
 
   // Starts the thread running SuperviseThread(), and returns once that thread has
   // initialised and its TID has been read. Waits for notification from the started

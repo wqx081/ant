@@ -5,13 +5,9 @@
 #include "ant/util/condition_variable.h"
 #include "ant/util/monotime.h"
 #include "ant/util/mutex.h"
-#include "ant/util/thread_restrictions.h"
 
 namespace ant {
 
-// This is a C++ implementation of the Java CountDownLatch
-// class.
-// See http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/CountDownLatch.html
 class CountDownLatch {
  public:
   // Initialize the latch with the given initial count.
@@ -30,7 +26,7 @@ class CountDownLatch {
       return;
     }
 
-    if (amount >= count_) {
+    if ((unsigned int)amount >= count_) {
       count_ = 0;
     } else {
       count_ -= amount;
@@ -52,7 +48,7 @@ class CountDownLatch {
   // Wait until the count on the latch reaches zero.
   // If the count is already zero, this returns immediately.
   void Wait() const {
-    ThreadRestrictions::AssertWaitAllowed();
+//    ThreadRestrictions::AssertWaitAllowed();
     MutexLock lock(lock_);
     while (count_ > 0) {
       cond_.Wait();
@@ -62,14 +58,14 @@ class CountDownLatch {
   // Waits for the count on the latch to reach zero, or until 'until' time is reached.
   // Returns true if the count became zero, false otherwise.
   bool WaitUntil(const MonoTime& when) const {
-    ThreadRestrictions::AssertWaitAllowed();
+//    ThreadRestrictions::AssertWaitAllowed();
     return WaitFor(when - MonoTime::Now());
   }
 
   // Waits for the count on the latch to reach zero, or until 'delta' time elapses.
   // Returns true if the count became zero, false otherwise.
   bool WaitFor(const MonoDelta& delta) const {
-    ThreadRestrictions::AssertWaitAllowed();
+//    ThreadRestrictions::AssertWaitAllowed();
     MutexLock lock(lock_);
     while (count_ > 0) {
       if (!cond_.TimedWait(delta)) {
