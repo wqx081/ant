@@ -30,7 +30,7 @@ class RpcContext;
 // method that they implement. The generic server code implemented
 // by GeneratedServiceIf look up the RpcMethodInfo in order to handle
 // each RPC.
-struct RpcMethodInfo : public RefCountedThreadSafe<RpcMethodInfo> {
+struct RpcMethodInfo : public base::RefCountedThreadSafe<RpcMethodInfo> {
   // Prototype protobufs for requests and responses.
   // These are empty protobufs which are cloned in order to provide an
   // instance for each request.

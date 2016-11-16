@@ -1,21 +1,4 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/sasl_client.h"
+#include "ant/rpc/sasl_client.h"
 
 #include <string.h>
 
@@ -26,26 +9,26 @@
 #include <glog/logging.h>
 #include <sasl/sasl.h>
 
-#include "kudu/gutil/endian.h"
-#include "kudu/gutil/map-util.h"
-#include "kudu/gutil/stl_util.h"
-#include "kudu/gutil/stringprintf.h"
-#include "kudu/gutil/strings/join.h"
-#include "kudu/gutil/strings/substitute.h"
-#include "kudu/gutil/strings/util.h"
-#include "kudu/rpc/blocking_ops.h"
-#include "kudu/rpc/constants.h"
-#include "kudu/rpc/rpc_header.pb.h"
-#include "kudu/rpc/sasl_common.h"
-#include "kudu/rpc/sasl_helper.h"
-#include "kudu/rpc/serialization.h"
-#include "kudu/util/faststring.h"
-#include "kudu/util/net/sockaddr.h"
-#include "kudu/util/net/socket.h"
-#include "kudu/util/scoped_cleanup.h"
-#include "kudu/util/trace.h"
+#include "ant/base/endian.h"
+#include "ant/base/map-util.h"
+#include "ant/base/stl_util.h"
+#include "ant/base/stringprintf.h"
+#include "ant/base/strings/join.h"
+#include "ant/base/strings/substitute.h"
+#include "ant/base/strings/util.h"
+#include "ant/rpc/blocking_ops.h"
+#include "ant/rpc/constants.h"
+#include "ant/rpc/rpc_header.pb.h"
+#include "ant/rpc/sasl_common.h"
+#include "ant/rpc/sasl_helper.h"
+#include "ant/rpc/serialization.h"
+#include "ant/util/faststring.h"
+#include "ant/util/net/sockaddr.h"
+#include "ant/util/net/socket.h"
+#include "ant/util/scoped_cleanup.h"
+#include "ant/util/trace.h"
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 using std::map;
@@ -533,4 +516,4 @@ int SaslClient::SecretCb(sasl_conn_t* conn, int id, sasl_secret_t** psecret) {
 }
 
 } // namespace rpc
-} // namespace kudu
+} // namespace ant

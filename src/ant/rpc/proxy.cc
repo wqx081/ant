@@ -1,21 +1,4 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/proxy.h"
+#include "ant/rpc/proxy.h"
 
 #include <boost/bind.hpp>
 #include <glog/logging.h>
@@ -27,24 +10,24 @@
 #include <sstream>
 #include <vector>
 
-#include "kudu/gutil/stringprintf.h"
-#include "kudu/gutil/strings/substitute.h"
-#include "kudu/rpc/outbound_call.h"
-#include "kudu/rpc/messenger.h"
-#include "kudu/rpc/remote_method.h"
-#include "kudu/rpc/response_callback.h"
-#include "kudu/rpc/rpc_header.pb.h"
-#include "kudu/util/net/sockaddr.h"
-#include "kudu/util/net/socket.h"
-#include "kudu/util/countdown_latch.h"
-#include "kudu/util/status.h"
-#include "kudu/util/user.h"
+#include "ant/base/stringprintf.h"
+#include "ant/base/strings/substitute.h"
+#include "ant/rpc/outbound_call.h"
+#include "ant/rpc/messenger.h"
+#include "ant/rpc/remote_method.h"
+#include "ant/rpc/response_callback.h"
+#include "ant/rpc/rpc_header.pb.h"
+#include "ant/util/net/sockaddr.h"
+#include "ant/util/net/socket.h"
+#include "ant/util/countdown_latch.h"
+#include "ant/util/status.h"
+#include "ant/util/user.h"
 
 using google::protobuf::Message;
 using std::string;
 using std::shared_ptr;
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 Proxy::Proxy(const std::shared_ptr<Messenger>& messenger,

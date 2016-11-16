@@ -11,7 +11,7 @@ class RemoteMethod;
 struct RpcMethodInfo;
 class InboundCall;
 
-class RpcService : public RefCountedThreadSafe<RpcService> {
+class RpcService : public base::RefCountedThreadSafe<RpcService> {
  public:
   virtual ~RpcService() {}
 

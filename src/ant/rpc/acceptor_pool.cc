@@ -1,21 +1,4 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/acceptor_pool.h"
+#include "ant/rpc/acceptor_pool.h"
 
 #include <gflags/gflags.h>
 #include <glog/logging.h>
@@ -26,23 +9,23 @@
 #include <string>
 #include <vector>
 
-#include "kudu/gutil/ref_counted.h"
-#include "kudu/gutil/strings/substitute.h"
-#include "kudu/rpc/messenger.h"
-#include "kudu/util/flag_tags.h"
-#include "kudu/util/logging.h"
-#include "kudu/util/metrics.h"
-#include "kudu/util/net/sockaddr.h"
-#include "kudu/util/net/socket.h"
-#include "kudu/util/status.h"
-#include "kudu/util/thread.h"
+#include "ant/base/ref_counted.h"
+#include "ant/base/strings/substitute.h"
+#include "ant/rpc/messenger.h"
+//#include "ant/util/flag_tags.h"
+//#include "ant/util/logging.h"
+#include "ant/util/metrics.h"
+#include "ant/util/net/sockaddr.h"
+#include "ant/util/net/socket.h"
+#include "ant/util/status.h"
+#include "ant/util/thread.h"
 
 using google::protobuf::Message;
 using std::string;
 
 METRIC_DEFINE_counter(server, rpc_connections_accepted,
                       "RPC Connections Accepted",
-                      kudu::MetricUnit::kConnections,
+                      ant::MetricUnit::kConnections,
                       "Number of incoming TCP connections made to the RPC server");
 
 DEFINE_int32(rpc_acceptor_listen_backlog, 128,
@@ -52,9 +35,9 @@ DEFINE_int32(rpc_acceptor_listen_backlog, 128,
              "request arrives when the queue is full, the client may receive "
              "an error. Higher values may help the server ride over bursts of "
              "new inbound connection requests.");
-TAG_FLAG(rpc_acceptor_listen_backlog, advanced);
+//TAG_FLAG(rpc_acceptor_listen_backlog, advanced);
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 AcceptorPool::AcceptorPool(Messenger* messenger, Socket* socket,
@@ -74,8 +57,8 @@ Status AcceptorPool::Start(int num_threads) {
   RETURN_NOT_OK(socket_.Listen(FLAGS_rpc_acceptor_listen_backlog));
 
   for (int i = 0; i < num_threads; i++) {
-    scoped_refptr<kudu::Thread> new_thread;
-    Status s = kudu::Thread::Create("acceptor pool", "acceptor",
+    scoped_refptr<ant::Thread> new_thread;
+    Status s = ant::Thread::Create("acceptor pool", "acceptor",
         &AcceptorPool::RunThread, this, &new_thread);
     if (!s.ok()) {
       Shutdown();
@@ -93,22 +76,11 @@ void AcceptorPool::Shutdown() {
     return;
   }
 
-#if defined(__linux__)
-  // Closing the socket will break us out of accept() if we're in it, and
-  // prevent future accepts.
   WARN_NOT_OK(socket_.Shutdown(true, true),
               strings::Substitute("Could not shut down acceptor socket on $0",
                                   bind_address_.ToString()));
-#else
-  // Calling shutdown on an accepting (non-connected) socket is illegal on most
-  // platforms (but not Linux). Instead, the accepting threads are interrupted
-  // forcefully.
-  for (const scoped_refptr<kudu::Thread>& thread : threads_) {
-    pthread_cancel(thread.get()->pthread_id());
-  }
-#endif
 
-  for (const scoped_refptr<kudu::Thread>& thread : threads_) {
+  for (const scoped_refptr<ant::Thread>& thread : threads_) {
     CHECK_OK(ThreadJoiner(thread.get()).Join());
   }
   threads_.clear();
@@ -130,18 +102,18 @@ void AcceptorPool::RunThread() {
             << " listening on " << bind_address_.ToString();
     Status s = socket_.Accept(&new_sock, &remote, Socket::FLAG_NONBLOCKING);
     if (!s.ok()) {
-      if (Release_Load(&closing_)) {
+      if (base::subtle::Release_Load(&closing_)) {
         break;
       }
-      KLOG_EVERY_N_SECS(WARNING, 1) << "AcceptorPool: accept failed: " << s.ToString()
-                                    << THROTTLE_MSG;
+//      KLOG_EVERY_N_SECS(WARNING, 1) << "AcceptorPool: accept failed: " << s.ToString()
+//                                    << THROTTLE_MSG;
       continue;
     }
     s = new_sock.SetNoDelay(true);
     if (!s.ok()) {
-      KLOG_EVERY_N_SECS(WARNING, 1) << "Acceptor with remote = " << remote.ToString()
-          << " failed to set TCP_NODELAY on a newly accepted socket: "
-          << s.ToString() << THROTTLE_MSG;
+//      KLOG_EVERY_N_SECS(WARNING, 1) << "Acceptor with remote = " << remote.ToString()
+//          << " failed to set TCP_NODELAY on a newly accepted socket: "
+//          << s.ToString() << THROTTLE_MSG;
       continue;
     }
     rpc_connections_accepted_->Increment();

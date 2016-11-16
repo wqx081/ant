@@ -10,7 +10,7 @@
 #include "ant/rpc/rpcz_store.h"
 #include "ant/rpc/serialization.h"
 #include "ant/rpc/service_if.h"
-#include "ant/util/debug/trace_event.h"
+//#include "ant/util/debug/trace_event.h"
 #include "ant/util/metrics.h"
 #include "ant/util/trace.h"
 
@@ -36,8 +36,11 @@ InboundCall::InboundCall(Connection* conn)
 InboundCall::~InboundCall() {}
 
 Status InboundCall::ParseFrom(gscoped_ptr<InboundTransfer> transfer) {
+//TODO(wqx)
+#if 0
   TRACE_EVENT_FLOW_BEGIN0("rpc", "InboundCall", this);
   TRACE_EVENT0("rpc", "InboundCall::ParseFrom");
+#endif
   RETURN_NOT_OK(serialization::ParseMessage(transfer->data(), &header_, &serialized_request_));
 
   // Adopt the service/method info from the header as soon as it's available.
@@ -56,12 +59,12 @@ Status InboundCall::ParseFrom(gscoped_ptr<InboundTransfer> transfer) {
 }
 
 void InboundCall::RespondSuccess(const MessageLite& response) {
-  TRACE_EVENT0("rpc", "InboundCall::RespondSuccess");
+////  TRACE_EVENT0("rpc", "InboundCall::RespondSuccess");
   Respond(response, true);
 }
 
 void InboundCall::RespondUnsupportedFeature(const vector<uint32_t>& unsupported_features) {
-  TRACE_EVENT0("rpc", "InboundCall::RespondUnsupportedFeature");
+////  TRACE_EVENT0("rpc", "InboundCall::RespondUnsupportedFeature");
   ErrorStatusPB err;
   err.set_message("unsupported feature flags");
   err.set_code(ErrorStatusPB::ERROR_INVALID_REQUEST);
@@ -74,7 +77,7 @@ void InboundCall::RespondUnsupportedFeature(const vector<uint32_t>& unsupported_
 
 void InboundCall::RespondFailure(ErrorStatusPB::RpcErrorCodePB error_code,
                                  const Status& status) {
-  TRACE_EVENT0("rpc", "InboundCall::RespondFailure");
+////  TRACE_EVENT0("rpc", "InboundCall::RespondFailure");
   ErrorStatusPB err;
   err.set_message(status.ToString());
   err.set_code(error_code);
@@ -105,12 +108,12 @@ void InboundCall::ApplicationErrorToPB(int error_ext_id, const std::string& mess
 
 void InboundCall::Respond(const MessageLite& response,
                           bool is_success) {
-  TRACE_EVENT_FLOW_END0("rpc", "InboundCall", this);
+////  TRACE_EVENT_FLOW_END0("rpc", "InboundCall", this);
   SerializeResponseBuffer(response, is_success);
 
-  TRACE_EVENT_ASYNC_END1("rpc", "InboundCall", this,
-                         "method", remote_method_.method_name());
-  TRACE_TO(trace_, "Queueing $0 response", is_success ? "success" : "failure");
+////  TRACE_EVENT_ASYNC_END1("rpc", "InboundCall", this,
+////                         "method", remote_method_.method_name());
+////  TRACE_TO(trace_, "Queueing $0 response", is_success ? "success" : "failure");
   RecordHandlingCompleted();
   conn_->rpcz_store()->AddCall(this);
   conn_->QueueResponseForCall(gscoped_ptr<InboundCall>(this));
@@ -148,7 +151,7 @@ void InboundCall::SerializeResponseBuffer(const MessageLite& response,
 }
 
 void InboundCall::SerializeResponseTo(vector<Slice>* slices) const {
-  TRACE_EVENT0("rpc", "InboundCall::SerializeResponseTo");
+////  TRACE_EVENT0("rpc", "InboundCall::SerializeResponseTo");
   CHECK_GT(response_hdr_buf_.size(), 0);
   CHECK_GT(response_msg_buf_.size(), 0);
   slices->reserve(slices->size() + 2 + sidecars_.size());
@@ -213,7 +216,7 @@ Trace* InboundCall::trace() {
 }
 
 void InboundCall::RecordCallReceived() {
-  TRACE_EVENT_ASYNC_BEGIN0("rpc", "InboundCall", this);
+////  TRACE_EVENT_ASYNC_BEGIN0("rpc", "InboundCall", this);
   DCHECK(!timing_.time_received.Initialized());  // Protect against multiple calls.
   timing_.time_received = MonoTime::Now();
 }

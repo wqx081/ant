@@ -1,21 +1,4 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/negotiation.h"
+#include "ant/rpc/negotiation.h"
 
 #include <sys/time.h>
 #include <poll.h>
@@ -25,32 +8,32 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
-#include "kudu/gutil/stringprintf.h"
-#include "kudu/gutil/strings/substitute.h"
-#include "kudu/rpc/blocking_ops.h"
-#include "kudu/rpc/connection.h"
-#include "kudu/rpc/reactor.h"
-#include "kudu/rpc/rpc_header.pb.h"
-#include "kudu/rpc/sasl_client.h"
-#include "kudu/rpc/sasl_common.h"
-#include "kudu/rpc/sasl_server.h"
-#include "kudu/util/errno.h"
-#include "kudu/util/flag_tags.h"
-#include "kudu/util/status.h"
-#include "kudu/util/trace.h"
+#include "ant/base/stringprintf.h"
+#include "ant/base/strings/substitute.h"
+#include "ant/rpc/blocking_ops.h"
+#include "ant/rpc/connection.h"
+#include "ant/rpc/reactor.h"
+#include "ant/rpc/rpc_header.pb.h"
+#include "ant/rpc/sasl_client.h"
+#include "ant/rpc/sasl_common.h"
+#include "ant/rpc/sasl_server.h"
+#include "ant/util/errno.h"
+//#include "ant/util/flag_tags.h"
+#include "ant/util/status.h"
+#include "ant/util/trace.h"
 
 DEFINE_bool(rpc_trace_negotiation, false,
             "If enabled, dump traces of all RPC negotiations to the log");
-TAG_FLAG(rpc_trace_negotiation, runtime);
-TAG_FLAG(rpc_trace_negotiation, advanced);
-TAG_FLAG(rpc_trace_negotiation, experimental);
+//// TAG_FLAG(rpc_trace_negotiation, runtime);
+//// TAG_FLAG(rpc_trace_negotiation, advanced);
+//// TAG_FLAG(rpc_trace_negotiation, experimental);
 
 DEFINE_int32(rpc_negotiation_inject_delay_ms, 0,
              "If enabled, injects the given number of milliseconds delay into "
              "the RPC negotiation process on the server side.");
-TAG_FLAG(rpc_negotiation_inject_delay_ms, unsafe);
+//// TAG_FLAG(rpc_negotiation_inject_delay_ms, unsafe);
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 using std::shared_ptr;

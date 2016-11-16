@@ -1,21 +1,4 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/blocking_ops.h"
+#include "ant/rpc/blocking_ops.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -23,18 +6,18 @@
 #include <glog/logging.h>
 #include <google/protobuf/message_lite.h>
 
-#include "kudu/gutil/endian.h"
-#include "kudu/gutil/strings/substitute.h"
-#include "kudu/rpc/constants.h"
-#include "kudu/rpc/serialization.h"
-#include "kudu/rpc/transfer.h"
-#include "kudu/util/faststring.h"
-#include "kudu/util/monotime.h"
-#include "kudu/util/net/sockaddr.h"
-#include "kudu/util/net/socket.h"
-#include "kudu/util/status.h"
+#include "ant/base/endian.h"
+#include "ant/base/strings/substitute.h"
+#include "ant/rpc/constants.h"
+#include "ant/rpc/serialization.h"
+#include "ant/rpc/transfer.h"
+#include "ant/util/faststring.h"
+#include "ant/util/monotime.h"
+#include "ant/util/net/sockaddr.h"
+#include "ant/util/net/socket.h"
+#include "ant/util/status.h"
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 using google::protobuf::MessageLite;

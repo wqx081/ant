@@ -1,34 +1,17 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
+#include "ant/rpc/rpc.h"
 
-#include "kudu/rpc/rpc.h"
-
-#include <boost/bind.hpp>
+#include <functional>
 #include <string>
 
-#include "kudu/gutil/strings/substitute.h"
-#include "kudu/rpc/messenger.h"
-#include "kudu/rpc/rpc_header.pb.h"
+#include "ant/base/strings/substitute.h"
+#include "ant/rpc/messenger.h"
+#include "ant/rpc/rpc_header.pb.h"
 
 using std::shared_ptr;
 using strings::Substitute;
 using strings::SubstituteAndAppend;
 
-namespace kudu {
+namespace ant {
 
 namespace rpc {
 
@@ -61,9 +44,9 @@ void RpcRetrier::DelayedRetry(Rpc* rpc, const Status& why_status) {
   // If the delay causes us to miss our deadline, RetryCb will fail the
   // RPC on our behalf.
   int num_ms = ++attempt_num_ + ((rand() % 5));
-  messenger_->ScheduleOnReactor(boost::bind(&RpcRetrier::DelayedRetryCb,
+  messenger_->ScheduleOnReactor(std::bind(&RpcRetrier::DelayedRetryCb,
                                             this,
-                                            rpc, _1),
+                                            rpc, std::placeholders::_1),
                                 MonoDelta::FromMilliseconds(num_ms));
 }
 
@@ -90,4 +73,4 @@ void RpcRetrier::DelayedRetryCb(Rpc* rpc, const Status& status) {
 }
 
 } // namespace rpc
-} // namespace kudu
+} // namespace ant

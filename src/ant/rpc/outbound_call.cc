@@ -1,20 +1,3 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
 #include <algorithm>
 #include <boost/functional/hash.hpp>
 #include <gflags/gflags.h>
@@ -23,16 +6,16 @@
 #include <unordered_set>
 #include <vector>
 
-#include "kudu/gutil/strings/substitute.h"
-#include "kudu/gutil/walltime.h"
-#include "kudu/rpc/outbound_call.h"
-#include "kudu/rpc/constants.h"
-#include "kudu/rpc/rpc_controller.h"
-#include "kudu/rpc/rpc_introspection.pb.h"
-#include "kudu/rpc/serialization.h"
-#include "kudu/rpc/transfer.h"
-#include "kudu/util/flag_tags.h"
-#include "kudu/util/kernel_stack_watchdog.h"
+#include "ant/base/strings/substitute.h"
+#include "ant/base/walltime.h"
+#include "ant/rpc/outbound_call.h"
+#include "ant/rpc/constants.h"
+#include "ant/rpc/rpc_controller.h"
+#include "ant/rpc/rpc_introspection.pb.h"
+#include "ant/rpc/serialization.h"
+#include "ant/rpc/transfer.h"
+//#include "ant/util/flag_tags.h"
+//#include "ant/util/kernel_stack_watchdog.h"
 
 // 100M cycles should be about 50ms on a 2Ghz box. This should be high
 // enough that involuntary context switches don't trigger it, but low enough
@@ -41,10 +24,10 @@ DEFINE_int64(rpc_callback_max_cycles, 100 * 1000 * 1000,
              "The maximum number of cycles for which an RPC callback "
              "should be allowed to run without emitting a warning."
              " (Advanced debugging option)");
-TAG_FLAG(rpc_callback_max_cycles, advanced);
-TAG_FLAG(rpc_callback_max_cycles, runtime);
+//// TAG_FLAG(rpc_callback_max_cycles, advanced);
+//// TAG_FLAG(rpc_callback_max_cycles, runtime);
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 using google::protobuf::Message;
@@ -182,7 +165,7 @@ void OutboundCall::set_state_unlocked(State new_state) {
 void OutboundCall::CallCallback() {
   int64_t start_cycles = CycleClock::Now();
   {
-    SCOPED_WATCH_STACK(100);
+////    SCOPED_WATCH_STACK(100);
     callback_();
     // Clear the callback, since it may be holding onto reference counts
     // via bound parameters. We do this inside the timer because it's possible

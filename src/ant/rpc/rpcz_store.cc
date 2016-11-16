@@ -1,21 +1,4 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/rpcz_store.h"
+#include "ant/rpc/rpcz_store.h"
 
 #include <algorithm>
 #include <array>
@@ -25,26 +8,26 @@
 #include <utility>
 #include <vector>
 
-#include "kudu/gutil/walltime.h"
-#include "kudu/rpc/inbound_call.h"
-#include "kudu/rpc/rpc_introspection.pb.h"
-#include "kudu/rpc/service_if.h"
-#include "kudu/util/atomic.h"
-#include "kudu/util/flag_tags.h"
-#include "kudu/util/monotime.h"
-#include "kudu/util/trace.h"
+#include "ant/base/walltime.h"
+#include "ant/rpc/inbound_call.h"
+#include "ant/rpc/rpc_introspection.pb.h"
+#include "ant/rpc/service_if.h"
+#include "ant/util/atomic.h"
+//#include "ant/util/flag_tags.h"
+#include "ant/util/monotime.h"
+#include "ant/util/trace.h"
 
 
 DEFINE_bool(rpc_dump_all_traces, false,
             "If true, dump all RPC traces at INFO level");
-TAG_FLAG(rpc_dump_all_traces, advanced);
-TAG_FLAG(rpc_dump_all_traces, runtime);
+//// TAG_FLAG(rpc_dump_all_traces, advanced);
+//// TAG_FLAG(rpc_dump_all_traces, runtime);
 
 using std::pair;
 using std::vector;
 using std::unique_ptr;
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 // Sample an RPC call once every N milliseconds within each

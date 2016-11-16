@@ -93,7 +93,7 @@ class Proxy {
   const std::string service_name_;
   std::shared_ptr<Messenger> messenger_;
   ConnectionId conn_id_;
-  mutable Atomic32 is_started_;
+  mutable base::subtle::Atomic32 is_started_;
 
   DISALLOW_COPY_AND_ASSIGN(Proxy);
 };

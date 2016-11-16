@@ -140,7 +140,7 @@ class SaslClient {
 
   string plain_auth_user_;
   string plain_pass_;
-  gscoped_ptr<sasl_secret_t, FreeDeleter> psecret_;
+  gscoped_ptr<sasl_secret_t, base::FreeDeleter> psecret_;
 
   // The set of features supported by the server.
   std::set<RpcFeatureFlag> server_features_;

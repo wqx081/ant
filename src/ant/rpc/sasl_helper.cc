@@ -1,21 +1,4 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/sasl_helper.h"
+#include "ant/rpc/sasl_helper.h"
 
 #include <set>
 #include <string>
@@ -23,22 +6,22 @@
 #include <glog/logging.h>
 #include <google/protobuf/message_lite.h>
 
-#include "kudu/gutil/endian.h"
-#include "kudu/gutil/gscoped_ptr.h"
-#include "kudu/gutil/macros.h"
-#include "kudu/gutil/map-util.h"
-#include "kudu/gutil/port.h"
-#include "kudu/gutil/strings/join.h"
-#include "kudu/rpc/blocking_ops.h"
-#include "kudu/rpc/constants.h"
-#include "kudu/rpc/rpc_header.pb.h"
-#include "kudu/rpc/sasl_common.h"
-#include "kudu/rpc/serialization.h"
-#include "kudu/util/faststring.h"
-#include "kudu/util/monotime.h"
-#include "kudu/util/status.h"
+#include "ant/base/endian.h"
+#include "ant/base/gscoped_ptr.h"
+#include "ant/base/macros.h"
+#include "ant/base/map-util.h"
+#include "ant/base/port.h"
+#include "ant/base/strings/join.h"
+#include "ant/rpc/blocking_ops.h"
+#include "ant/rpc/constants.h"
+#include "ant/rpc/rpc_header.pb.h"
+#include "ant/rpc/sasl_common.h"
+#include "ant/rpc/serialization.h"
+#include "ant/util/faststring.h"
+#include "ant/util/monotime.h"
+#include "ant/util/status.h"
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 using google::protobuf::MessageLite;
@@ -197,4 +180,4 @@ Status SaslHelper::SendSaslMessage(Socket* sock, const MessageLite& header, cons
 }
 
 } // namespace rpc
-} // namespace kudu
+} // namespace ant

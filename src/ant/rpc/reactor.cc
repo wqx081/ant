@@ -1,21 +1,4 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/reactor.h"
+#include "ant/rpc/reactor.h"
 
 #include <arpa/inet.h>
 #include <boost/intrusive/list.hpp>
@@ -29,38 +12,31 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "kudu/gutil/ref_counted.h"
-#include "kudu/gutil/stringprintf.h"
-#include "kudu/rpc/connection.h"
-#include "kudu/rpc/messenger.h"
-#include "kudu/rpc/negotiation.h"
-#include "kudu/rpc/rpc_controller.h"
-#include "kudu/rpc/rpc_introspection.pb.h"
-#include "kudu/rpc/sasl_client.h"
-#include "kudu/rpc/sasl_server.h"
-#include "kudu/rpc/transfer.h"
-#include "kudu/util/countdown_latch.h"
-#include "kudu/util/debug/sanitizer_scopes.h"
-#include "kudu/util/errno.h"
-#include "kudu/util/flag_tags.h"
-#include "kudu/util/monotime.h"
-#include "kudu/util/status.h"
-#include "kudu/util/thread.h"
-#include "kudu/util/threadpool.h"
-#include "kudu/util/thread_restrictions.h"
-#include "kudu/util/trace.h"
-#include "kudu/util/net/socket.h"
-#include "kudu/util/net/ssl_factory.h"
-#include "kudu/util/net/ssl_socket.h"
+#include "ant/base/ref_counted.h"
+#include "ant/base/stringprintf.h"
+#include "ant/rpc/connection.h"
+#include "ant/rpc/messenger.h"
+#include "ant/rpc/negotiation.h"
+#include "ant/rpc/rpc_controller.h"
+#include "ant/rpc/rpc_introspection.pb.h"
+#include "ant/rpc/sasl_client.h"
+#include "ant/rpc/sasl_server.h"
+#include "ant/rpc/transfer.h"
+#include "ant/util/countdown_latch.h"
+//#include "ant/util/debug/sanitizer_scopes.h"
+#include "ant/util/errno.h"
+//#include "ant/util/flag_tags.h"
+#include "ant/util/monotime.h"
+#include "ant/util/status.h"
+#include "ant/util/thread.h"
+#include "ant/util/threadpool.h"
+//#include "ant/util/thread_restrictions.h"
+#include "ant/util/trace.h"
+#include "ant/util/net/socket.h"
+#include "ant/util/net/ssl_factory.h"
+#include "ant/util/net/ssl_socket.h"
 
-// When compiling on Mac OS X, use 'kqueue' instead of the default, 'select', for the event loop.
-// Otherwise we run into problems because 'select' can't handle connections when more than 1024
-// file descriptors are open by the process.
-#if defined(__APPLE__)
-static const int kDefaultLibEvFlags = ev::KQUEUE;
-#else
 static const int kDefaultLibEvFlags = ev::AUTO;
-#endif
 
 using std::string;
 using std::shared_ptr;
@@ -70,10 +46,10 @@ using std::shared_ptr;
 // KUDU-1580 is fixed.
 DEFINE_int64(rpc_negotiation_timeout_ms, 15000,
              "Timeout for negotiating an RPC connection.");
-TAG_FLAG(rpc_negotiation_timeout_ms, advanced);
-TAG_FLAG(rpc_negotiation_timeout_ms, runtime);
+//// TAG_FLAG(rpc_negotiation_timeout_ms, advanced);
+//// TAG_FLAG(rpc_negotiation_timeout_ms, runtime);
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 namespace {
@@ -111,7 +87,7 @@ Status ReactorThread::Init() {
                coarse_timer_granularity_.ToSeconds());
 
   // Create Reactor thread.
-  return kudu::Thread::Create("reactor", "rpc reactor", &ReactorThread::RunThread, this, &thread_);
+  return ant::Thread::Create("reactor", "rpc reactor", &ReactorThread::RunThread, this, &thread_);
 }
 
 void ReactorThread::Shutdown() {
@@ -183,7 +159,7 @@ void ReactorThread::WakeThread() {
   // libev uses some lock-free synchronization, but doesn't have TSAN annotations.
   // See http://lists.schmorp.de/pipermail/libev/2013q2/002178.html or KUDU-366
   // for examples.
-  debug::ScopedTSANIgnoreReadsAndWrites ignore_tsan;
+////  debug::ScopedTSANIgnoreReadsAndWrites ignore_tsan;
   async_.send();
 }
 
@@ -307,12 +283,12 @@ Reactor *ReactorThread::reactor() {
 }
 
 bool ReactorThread::IsCurrentThread() const {
-  return thread_.get() == kudu::Thread::current_thread();
+  return thread_.get() == ant::Thread::current_thread();
 }
 
 void ReactorThread::RunThread() {
-  ThreadRestrictions::SetWaitAllowed(false);
-  ThreadRestrictions::SetIOAllowed(false);
+////  ThreadRestrictions::SetWaitAllowed(false);
+////  ThreadRestrictions::SetIOAllowed(false);
   DVLOG(6) << "Calling ReactorThread::RunThread()...";
   loop_.run(0);
   VLOG(1) << name() << " thread exiting.";
@@ -568,7 +544,7 @@ class RunFunctionTask : public ReactorTask {
 };
 
 Status Reactor::GetMetrics(ReactorMetrics *metrics) {
-  return RunOnReactorThread(boost::bind(&ReactorThread::GetMetrics, &thread_, metrics));
+  return RunOnReactorThread(std::bind(&ReactorThread::GetMetrics, &thread_, metrics));
 }
 
 Status Reactor::RunOnReactorThread(const boost::function<Status()>& f) {
@@ -579,7 +555,7 @@ Status Reactor::RunOnReactorThread(const boost::function<Status()>& f) {
 
 Status Reactor::DumpRunningRpcs(const DumpRunningRpcsRequestPB& req,
                                 DumpRunningRpcsResponsePB* resp) {
-  return RunOnReactorThread(boost::bind(&ReactorThread::DumpRunningRpcs, &thread_,
+  return RunOnReactorThread(std::bind(&ReactorThread::DumpRunningRpcs, &thread_,
                                         boost::ref(req), resp));
 }
 
@@ -671,4 +647,4 @@ bool Reactor::DrainTaskQueue(boost::intrusive::list<ReactorTask> *tasks) { // NO
 }
 
 } // namespace rpc
-} // namespace kudu
+} // namespace ant

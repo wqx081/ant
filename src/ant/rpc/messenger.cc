@@ -68,9 +68,9 @@ DEFINE_bool(server_require_kerberos, false,
 // TODO(todd): this flag is too coarse-grained, since secure servers still
 // need to allow non-kerberized connections authenticated by tokens. But
 // it's a useful stop-gap.
-TAG_FLAG(server_require_kerberos, experimental);
+//// TAG_FLAG(server_require_kerberos, experimental);
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 class Messenger;
@@ -145,7 +145,7 @@ void Messenger::AllExternalReferencesDropped() {
 
 void Messenger::Shutdown() {
   // Since we're shutting down, it's OK to block.
-  ThreadRestrictions::ScopedAllowWait allow_wait;
+  //// ThreadRestrictions::ScopedAllowWait allow_wait;
 
   std::lock_guard<percpu_rwlock> guard(lock_);
   if (closing_) {
@@ -311,7 +311,7 @@ Status Messenger::DumpRunningRpcs(const DumpRunningRpcsRequestPB& req,
   return Status::OK();
 }
 
-void Messenger::ScheduleOnReactor(const boost::function<void(const Status&)>& func,
+void Messenger::ScheduleOnReactor(const std::function<void(const Status&)>& func,
                                   MonoDelta when) {
   DCHECK(!reactors_.empty());
 
@@ -342,4 +342,4 @@ const scoped_refptr<RpcService> Messenger::rpc_service(const string& service_nam
 }
 
 } // namespace rpc
-} // namespace kudu
+} // namespace ant

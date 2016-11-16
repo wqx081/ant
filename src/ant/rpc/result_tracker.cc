@@ -8,12 +8,12 @@
 #include "ant/rpc/inbound_call.h"
 #include "ant/rpc/rpc_context.h"
 
-#include "kudu/util/debug/trace_event.h"
-#include "kudu/util/flag_tags.h"
-#include "kudu/util/mem_tracker.h"
+//#include "ant/util/debug/trace_event.h"
+//#include "ant/util/flag_tags.h"
+#include "ant/util/mem_tracker.h"
 
-#include "kudu/util/trace.h"
-#include "kudu/util/pb_util.h"
+#include "ant/util/trace.h"
+//#include "ant/util/pb_util.h"
 
 DEFINE_int64(remember_clients_ttl_ms, 3600 * 1000 /* 1 hour */,
     "Maximum amount of time, in milliseconds, the server \"remembers\" a client for the "
@@ -21,24 +21,24 @@ DEFINE_int64(remember_clients_ttl_ms, 3600 * 1000 /* 1 hour */,
     "client is no longer remembered and the memory occupied by its responses is reclaimed. "
     "Retries of requests older than 'remember_clients_ttl_ms' are treated as new "
     "ones.");
-TAG_FLAG(remember_clients_ttl_ms, advanced);
+//// TAG_FLAG(remember_clients_ttl_ms, advanced);
 
 DEFINE_int64(remember_responses_ttl_ms, 600 * 1000 /* 10 mins */,
     "Maximum amount of time, in milliseconds, the server \"remembers\" a response to a "
     "specific request for a client. After this period has elapsed, the response may have "
     "been garbage collected and the client might get a response indicating the request is "
     "STALE.");
-TAG_FLAG(remember_responses_ttl_ms, advanced);
+//// TAG_FLAG(remember_responses_ttl_ms, advanced);
 
 DEFINE_int64(result_tracker_gc_interval_ms, 1000,
     "Interval at which the result tracker will look for entries to GC.");
-TAG_FLAG(result_tracker_gc_interval_ms, hidden);
+//// TAG_FLAG(result_tracker_gc_interval_ms, hidden);
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 using google::protobuf::Message;
-using kudu::MemTracker;
+using ant::MemTracker;
 using rpc::InboundCall;
 using std::move;
 using std::lock_guard;
@@ -231,9 +231,8 @@ void ResultTracker::LogAndTraceAndRespondSuccess(RpcContext* context,
   InboundCall* call = context->call_;
   VLOG(1) << this << " " << call->remote_method().service_name() << ": Sending RPC success "
       "response for " << call->ToString() << ":" << std::endl << msg.DebugString();
-  TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
-                         "response", pb_util::PbTracer::TracePb(msg),
-                         "trace", context->trace()->DumpToString());
+////  TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this, "response", pb_util::PbTracer::TracePb(msg), "trace", context->trace()->DumpToString());
+//
   call->RespondSuccess(msg);
   delete context;
 }
@@ -243,9 +242,7 @@ void ResultTracker::LogAndTraceFailure(RpcContext* context,
   InboundCall* call = context->call_;
   VLOG(1) << this << " " << call->remote_method().service_name() << ": Sending RPC failure "
       "response for " << call->ToString() << ": " << msg.DebugString();
-  TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
-                         "response", pb_util::PbTracer::TracePb(msg),
-                         "trace", context->trace()->DumpToString());
+////  TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this, "response", pb_util::PbTracer::TracePb(msg), "trace", context->trace()->DumpToString());
 }
 
 void ResultTracker::LogAndTraceFailure(RpcContext* context,
@@ -254,9 +251,9 @@ void ResultTracker::LogAndTraceFailure(RpcContext* context,
   InboundCall* call = context->call_;
   VLOG(1) << this << " " << call->remote_method().service_name() << ": Sending RPC failure "
       "response for " << call->ToString() << ": " << status.ToString();
-  TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
-                         "status", status.ToString(),
-                         "trace", context->trace()->DumpToString());
+////  TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
+////                         "status", status.ToString(),
+////                         "trace", context->trace()->DumpToString());
 }
 
 ResultTracker::CompletionRecord* ResultTracker::FindCompletionRecordOrDieUnlocked(
@@ -488,7 +485,7 @@ string ResultTracker::ToStringUnlocked() const {
 
 template<class MustGcRecordFunc>
 void ResultTracker::ClientState::GCCompletionRecords(
-    const shared_ptr<kudu::MemTracker>& mem_tracker,
+    const shared_ptr<ant::MemTracker>& mem_tracker,
     MustGcRecordFunc must_gc_record_func) {
   ScopedMemTrackerUpdater<ClientState> updater(mem_tracker.get(), this);
   for (auto iter = completion_records.begin(); iter != completion_records.end();) {

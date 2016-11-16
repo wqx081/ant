@@ -1,62 +1,45 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/service_pool.h"
+#include "ant/rpc/service_pool.h"
 
 #include <glog/logging.h>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "kudu/gutil/gscoped_ptr.h"
-#include "kudu/gutil/ref_counted.h"
-#include "kudu/rpc/inbound_call.h"
-#include "kudu/rpc/messenger.h"
-#include "kudu/rpc/service_if.h"
-#include "kudu/rpc/service_queue.h"
-#include "kudu/gutil/strings/substitute.h"
-#include "kudu/util/logging.h"
-#include "kudu/util/metrics.h"
-#include "kudu/util/status.h"
-#include "kudu/util/thread.h"
-#include "kudu/util/trace.h"
+#include "ant/base/gscoped_ptr.h"
+#include "ant/base/ref_counted.h"
+#include "ant/rpc/inbound_call.h"
+#include "ant/rpc/messenger.h"
+#include "ant/rpc/service_if.h"
+#include "ant/rpc/service_queue.h"
+#include "ant/base/strings/substitute.h"
+//#include "ant/util/logging.h"
+#include "ant/util/metrics.h"
+#include "ant/util/status.h"
+#include "ant/util/thread.h"
+#include "ant/util/trace.h"
 
 using std::shared_ptr;
 using strings::Substitute;
 
 METRIC_DEFINE_histogram(server, rpc_incoming_queue_time,
                         "RPC Queue Time",
-                        kudu::MetricUnit::kMicroseconds,
+                        ant::MetricUnit::kMicroseconds,
                         "Number of microseconds incoming RPC requests spend in the worker queue",
                         60000000LU, 3);
 
 METRIC_DEFINE_counter(server, rpcs_timed_out_in_queue,
                       "RPC Queue Timeouts",
-                      kudu::MetricUnit::kRequests,
+                      ant::MetricUnit::kRequests,
                       "Number of RPCs whose timeout elapsed while waiting "
                       "in the service queue, and thus were not processed.");
 
 METRIC_DEFINE_counter(server, rpcs_queue_overflow,
                       "RPC Queue Overflows",
-                      kudu::MetricUnit::kRequests,
+                      ant::MetricUnit::kRequests,
                       "Number of RPCs dropped because the service queue "
                       "was full.");
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 ServicePool::ServicePool(gscoped_ptr<ServiceIf> service,
@@ -76,8 +59,8 @@ ServicePool::~ServicePool() {
 
 Status ServicePool::Init(int num_threads) {
   for (int i = 0; i < num_threads; i++) {
-    scoped_refptr<kudu::Thread> new_thread;
-    CHECK_OK(kudu::Thread::Create("service pool", "rpc worker",
+    scoped_refptr<ant::Thread> new_thread;
+    CHECK_OK(ant::Thread::Create("service pool", "rpc worker",
         &ServicePool::RunThread, this, &new_thread));
     threads_.push_back(new_thread);
   }
@@ -91,7 +74,7 @@ void ServicePool::Shutdown() {
   if (closing_) return;
   closing_ = true;
   // TODO: Use a proper thread pool implementation.
-  for (scoped_refptr<kudu::Thread>& thread : threads_) {
+  for (scoped_refptr<ant::Thread>& thread : threads_) {
     CHECK_OK(ThreadJoiner(thread.get()).Join());
   }
 
@@ -114,7 +97,7 @@ void ServicePool::RejectTooBusy(InboundCall* c) {
                  c->remote_address().ToString(),
                  service_queue_.max_size());
   rpcs_queue_overflow_->Increment();
-  KLOG_EVERY_N_SECS(WARNING, 1) << err_msg;
+////  KLOG_EVERY_N_SECS(WARNING, 1) << err_msg;
   c->RespondFailure(ErrorStatusPB::ERROR_SERVER_TOO_BUSY,
                     Status::ServiceUnavailable(err_msg));
   DLOG(INFO) << err_msg << " Contents of service queue:\n"

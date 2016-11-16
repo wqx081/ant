@@ -1,11 +1,11 @@
 CXXFLAGS += -std=c++11
 CXXFLAGS += -I./
-CXXFLAGS += -std=c++11 -Wall -Werror -Wno-deprecated -g -c -o
+CXXFLAGS += -std=c++11 -Wall -Werror -Wno-sign-compare -Wno-deprecated -g -c -o
 
 CFLAGS += -I./
 CFLAGS += -Wall -g -c -o
 
-LIB_FILES :=-lglog -lgflags -levent  -lpthread -lssl -lcrypto -lz -lev -lsasl
+LIB_FILES :=-lglog -lgflags -levent  -lpthread -lssl -lcrypto -lz -lev -lsasl2 -lpcre
 TEST_LIB_FILES :=  -L/usr/local/lib -lgtest -lgtest_main -lpthread -lprotobuf
 
 PROTOC = protoc
@@ -84,6 +84,7 @@ CPP_SOURCES := \
 	./ant/util/random_util.cc \
 	./ant/util/failure_detector.cc \
 	./ant/util/throttler.cc \
+	./ant/util/user.cc \
 	\
 	./ant/util/net/socket.cc \
 	./ant/util/net/sockaddr.cc \
@@ -101,12 +102,38 @@ CPP_SOURCES := \
 	./ant/util/trace_metrics.cc \
 	./ant/util/trace.cc \
 	\
+	./ant/rpc/acceptor_pool.cc \
+	./ant/rpc/blocking_ops.cc \
+	\
+	./ant/rpc/connection.cc \
 	./ant/rpc/constants.cc \
-	./ant/rpc/rpc_header.pb.cc \
-	./ant/rpc/serialization.cc \
-	./ant/rpc/transfer.cc \
+	./ant/rpc/inbound_call.cc \
+	./ant/rpc/messenger.cc \
+	./ant/rpc/negotiation.cc \
+	./ant/rpc/outbound_call.cc \
+	./ant/rpc/proxy.cc \
+	./ant/rpc/reactor.cc \
 	./ant/rpc/remote_method.cc \
+	./ant/rpc/request_tracker.cc \
+	./ant/rpc/result_tracker.cc \
+	./ant/rpc/rpc.cc \
+	./ant/rpc/rpc_context.cc \
+	./ant/rpc/rpc_controller.cc \
+	./ant/rpc/rpc_header.pb.cc \
 	./ant/rpc/rpc_introspection.pb.cc \
+	./ant/rpc/rpcz_store.cc \
+	\
+	./ant/rpc/sasl_client.cc \
+	./ant/rpc/sasl_common.cc \
+	./ant/rpc/sasl_helper.cc \
+	./ant/rpc/sasl_server.cc \
+	\
+	./ant/rpc/serialization.cc \
+	./ant/rpc/service_if.cc \
+	./ant/rpc/service_pool.cc \
+	./ant/rpc/service_queue.cc \
+	\
+	./ant/rpc/transfer.cc \
 
 
 C_OBJECTS := $(C_SOURCES:.c=.o)

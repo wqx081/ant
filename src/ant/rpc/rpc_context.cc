@@ -1,38 +1,21 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/rpc_context.h"
+#include "ant/rpc/rpc_context.h"
 
 #include <ostream>
 #include <sstream>
 
-#include "kudu/rpc/outbound_call.h"
-#include "kudu/rpc/inbound_call.h"
-#include "kudu/rpc/result_tracker.h"
-#include "kudu/rpc/rpc_sidecar.h"
-#include "kudu/rpc/service_if.h"
-#include "kudu/util/hdr_histogram.h"
-#include "kudu/util/metrics.h"
-#include "kudu/util/trace.h"
-#include "kudu/util/pb_util.h"
+#include "ant/rpc/outbound_call.h"
+#include "ant/rpc/inbound_call.h"
+#include "ant/rpc/result_tracker.h"
+#include "ant/rpc/rpc_sidecar.h"
+#include "ant/rpc/service_if.h"
+#include "ant/util/hdr_histogram.h"
+#include "ant/util/metrics.h"
+#include "ant/util/trace.h"
+/// #include "ant/util/pb_util.h"
 
 using google::protobuf::Message;
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 RpcContext::RpcContext(InboundCall *call,
@@ -45,9 +28,8 @@ RpcContext::RpcContext(InboundCall *call,
     result_tracker_(result_tracker) {
   VLOG(4) << call_->remote_method().service_name() << ": Received RPC request for "
           << call_->ToString() << ":" << std::endl << request_pb_->DebugString();
-  TRACE_EVENT_ASYNC_BEGIN2("rpc_call", "RPC", this,
-                           "call", call_->ToString(),
-                           "request", pb_util::PbTracer::TracePb(*request_pb_));
+////  TRACE_EVENT_ASYNC_BEGIN2("rpc_call", "RPC", this,
+////                           "call", call_->ToString(), "request", pb_util::PbTracer::TracePb(*request_pb_));
 }
 
 RpcContext::~RpcContext() {
@@ -60,9 +42,9 @@ void RpcContext::RespondSuccess() {
   } else {
     VLOG(4) << call_->remote_method().service_name() << ": Sending RPC success response for "
         << call_->ToString() << ":" << std::endl << response_pb_->DebugString();
-    TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
-                           "response", pb_util::PbTracer::TracePb(*response_pb_),
-                           "trace", trace()->DumpToString());
+////    TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
+////                           "response", pb_util::PbTracer::TracePb(*response_pb_),
+////                           "trace", trace()->DumpToString());
     call_->RespondSuccess(*response_pb_);
     delete this;
   }
@@ -75,9 +57,9 @@ void RpcContext::RespondNoCache() {
   } else {
     VLOG(4) << call_->remote_method().service_name() << ": Sending RPC failure response for "
         << call_->ToString() << ": " << response_pb_->DebugString();
-    TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
-                           "response", pb_util::PbTracer::TracePb(*response_pb_),
-                           "trace", trace()->DumpToString());
+////    TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
+////                           "response", pb_util::PbTracer::TracePb(*response_pb_),
+////                           "trace", trace()->DumpToString());
     // This is a bit counter intuitive, but when we get the failure but set the error on the
     // call's response we call RespondSuccess() instead of RespondFailure().
     call_->RespondSuccess(*response_pb_);
@@ -92,9 +74,9 @@ void RpcContext::RespondFailure(const Status &status) {
   } else {
     VLOG(4) << call_->remote_method().service_name() << ": Sending RPC failure response for "
         << call_->ToString() << ": " << status.ToString();
-    TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
-                           "status", status.ToString(),
-                           "trace", trace()->DumpToString());
+////    TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
+////                           "status", status.ToString(),
+////                           "trace", trace()->DumpToString());
     call_->RespondFailure(ErrorStatusPB::ERROR_APPLICATION, status);
     delete this;
   }
@@ -107,9 +89,9 @@ void RpcContext::RespondRpcFailure(ErrorStatusPB_RpcErrorCodePB err, const Statu
   } else {
     VLOG(4) << call_->remote_method().service_name() << ": Sending RPC failure response for "
         << call_->ToString() << ": " << status.ToString();
-    TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
-                           "status", status.ToString(),
-                           "trace", trace()->DumpToString());
+////    TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
+////                           "status", status.ToString(),
+////                           "trace", trace()->DumpToString());
     call_->RespondFailure(err, status);
     delete this;
   }
@@ -128,9 +110,9 @@ void RpcContext::RespondApplicationError(int error_ext_id, const std::string& me
           << ": Sending application error response for " << call_->ToString()
           << ":" << std::endl << err.DebugString();
     }
-    TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
-                           "response", pb_util::PbTracer::TracePb(app_error_pb),
-                           "trace", trace()->DumpToString());
+////    TRACE_EVENT_ASYNC_END2("rpc_call", "RPC", this,
+////                           "response", pb_util::PbTracer::TracePb(app_error_pb),
+////                           "trace", trace()->DumpToString());
     call_->RespondApplicationError(error_ext_id, message, app_error_pb);
     delete this;
   }

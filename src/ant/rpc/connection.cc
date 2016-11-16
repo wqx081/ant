@@ -1,21 +1,4 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-#include "kudu/rpc/connection.h"
+#include "ant/rpc/connection.h"
 
 #include <algorithm>
 #include <boost/intrusive/list.hpp>
@@ -27,26 +10,26 @@
 #include <string>
 #include <vector>
 
-#include "kudu/gutil/map-util.h"
-#include "kudu/gutil/strings/human_readable.h"
-#include "kudu/gutil/strings/substitute.h"
-#include "kudu/rpc/rpc_introspection.pb.h"
-#include "kudu/rpc/constants.h"
-#include "kudu/rpc/messenger.h"
-#include "kudu/rpc/reactor.h"
-#include "kudu/rpc/rpc_controller.h"
-#include "kudu/rpc/rpc_header.pb.h"
-#include "kudu/rpc/sasl_client.h"
-#include "kudu/rpc/sasl_server.h"
-#include "kudu/rpc/transfer.h"
-#include "kudu/util/debug-util.h"
-#include "kudu/util/flag_tags.h"
-#include "kudu/util/logging.h"
-#include "kudu/util/net/sockaddr.h"
-#include "kudu/util/net/ssl_factory.h"
-#include "kudu/util/net/ssl_socket.h"
-#include "kudu/util/status.h"
-#include "kudu/util/trace.h"
+#include "ant/base/map-util.h"
+#include "ant/base/strings/human_readable.h"
+#include "ant/base/strings/substitute.h"
+#include "ant/rpc/rpc_introspection.pb.h"
+#include "ant/rpc/constants.h"
+#include "ant/rpc/messenger.h"
+#include "ant/rpc/reactor.h"
+#include "ant/rpc/rpc_controller.h"
+#include "ant/rpc/rpc_header.pb.h"
+#include "ant/rpc/sasl_client.h"
+#include "ant/rpc/sasl_server.h"
+#include "ant/rpc/transfer.h"
+//#include "ant/util/debug-util.h"
+//#include "ant/util/flag_tags.h"
+//#include "ant/util/logging.h"
+#include "ant/util/net/sockaddr.h"
+#include "ant/util/net/ssl_factory.h"
+#include "ant/util/net/ssl_socket.h"
+#include "ant/util/status.h"
+#include "ant/util/trace.h"
 
 using std::function;
 using std::includes;
@@ -57,7 +40,7 @@ using strings::Substitute;
 
 DECLARE_bool(server_require_kerberos);
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 ///
@@ -648,10 +631,11 @@ Status Connection::InitSaslClient() {
     // to a server which requires Kerberos, we'll get a negotiation error
     // at that point.
     if (VLOG_IS_ON(1)) {
-      KLOG_FIRST_N(INFO, 1) << "Couldn't enable GSSAPI (Kerberos) SASL plugin: "
-                            << gssapi_status.message().ToString()
-                            << ". This process will be unable to connect to "
-                            << "servers requiring Kerberos authentication.";
+//TODO(wqx):
+//      KLOG_FIRST_N(INFO, 1) << "Couldn't enable GSSAPI (Kerberos) SASL plugin: "
+//                            << gssapi_status.message().ToString()
+//                            << ". This process will be unable to connect to "
+//                            << "servers requiring Kerberos authentication.";
     }
   }
   // TODO(todd): we dont seem to ever use ANONYMOUS. Should we remove it?

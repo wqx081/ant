@@ -32,7 +32,7 @@ class RpcConnectionPB;
 class ReactorThread;
 class RpczStore;
 
-class Connection : public RefCountedThreadSafe<Connection> {
+class Connection : public base::RefCountedThreadSafe<Connection> {
  public:
   enum Direction {
     CLIENT,
