@@ -8,8 +8,6 @@
 #include "ant/base/macros.h"
 #include "ant/base/port.h"
 
-//#include "kudu/util/thread.h"
-
 namespace ant {
 
 // Read-Write semaphore. 32bit uint that contains the number of readers.

@@ -59,6 +59,7 @@ CPP_SOURCES := \
 	./ant/util/slice.cc \
 	./ant/util/status.cc \
 	./ant/util/status_callback.cc \
+	./ant/util/string_case.cc \
 	./ant/util/monotime.cc \
 	./ant/util/mutex.cc \
 	./ant/util/condition_variable.cc \

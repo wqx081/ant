@@ -1,20 +1,3 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
 ////////////////////////////////////////////////////////////////////////////////
 // Example usage:
 // protoc --plugin=protoc-gen-krpc --krpc_out . --proto_path . <file>.proto
@@ -35,17 +18,17 @@
 #include <sstream>
 #include <string>
 
-#include "kudu/gutil/gscoped_ptr.h"
-#include "kudu/gutil/strings/split.h"
-#include "kudu/gutil/strings/join.h"
-#include "kudu/gutil/strings/numbers.h"
-#include "kudu/gutil/strings/strip.h"
-#include "kudu/gutil/strings/stringpiece.h"
-#include "kudu/gutil/strings/substitute.h"
-#include "kudu/gutil/strings/util.h"
-#include "kudu/rpc/rpc_header.pb.h"
-#include "kudu/util/status.h"
-#include "kudu/util/string_case.h"
+#include "ant/base/gscoped_ptr.h"
+#include "ant/base/strings/split.h"
+#include "ant/base/strings/join.h"
+#include "ant/base/strings/numbers.h"
+#include "ant/base/strings/strip.h"
+#include "ant/base/strings/stringpiece.h"
+#include "ant/base/strings/substitute.h"
+#include "ant/base/strings/util.h"
+#include "ant/rpc/rpc_header.pb.h"
+#include "ant/util/status.h"
+#include "ant/util/string_case.h"
 
 using google::protobuf::FileDescriptor;
 using google::protobuf::io::Printer;
@@ -56,7 +39,7 @@ using std::shared_ptr;
 using std::string;
 using std::vector;
 
-namespace kudu {
+namespace ant {
 namespace rpc {
 
 class Substituter {
@@ -335,17 +318,17 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
       "#include <memory>\n"
       "#include <string>\n"
       "\n"
-      "#include \"kudu/rpc/rpc_header.pb.h\"\n"
-      "#include \"kudu/rpc/service_if.h\"\n"
+      "#include \"ant/rpc/rpc_header.pb.h\"\n"
+      "#include \"ant/rpc/service_if.h\"\n"
       "\n"
-      "namespace kudu {\n"
+      "namespace ant {\n"
       "class MetricEntity;\n"
       "namespace rpc {\n"
       "class Messenger;\n"
       "class ResultTracker;\n"
       "class RpcContext;\n"
       "} // namespace rpc\n"
-      "} // namespace kudu\n"
+      "} // namespace ant\n"
       "\n"
       "$open_namespace$"
       "\n"
@@ -357,7 +340,7 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
       subs->PushService(service);
 
       Print(printer, *subs,
-        "class $service_name$If : public ::kudu::rpc::GeneratedServiceIf {\n"
+        "class $service_name$If : public ::ant::rpc::GeneratedServiceIf {\n"
         " public:\n"
         "  explicit $service_name$If(const scoped_refptr<MetricEntity>& entity,"
             " const scoped_refptr<rpc::ResultTracker>& result_tracker);\n"
@@ -374,7 +357,7 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
 
         Print(printer, *subs,
         "  virtual void $rpc_name$(const $request$ *req,\n"
-        "     $response$ *resp, ::kudu::rpc::RpcContext *context) = 0;\n"
+        "     $response$ *resp, ::ant::rpc::RpcContext *context) = 0;\n"
         );
 
         subs->Pop();
@@ -405,11 +388,11 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
       "\n"
       "#include <glog/logging.h>\n"
       "\n"
-      "#include \"kudu/rpc/inbound_call.h\"\n"
-      "#include \"kudu/rpc/remote_method.h\"\n"
-      "#include \"kudu/rpc/rpc_context.h\"\n"
-      "#include \"kudu/rpc/service_if.h\"\n"
-      "#include \"kudu/util/metrics.h\"\n"
+      "#include \"ant/rpc/inbound_call.h\"\n"
+      "#include \"ant/rpc/remote_method.h\"\n"
+      "#include \"ant/rpc/rpc_context.h\"\n"
+      "#include \"ant/rpc/service_if.h\"\n"
+      "#include \"ant/util/metrics.h\"\n"
       "\n");
 
     // Define metric prototypes for each method in the service.
@@ -425,7 +408,7 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
         Print(printer, *subs,
           "METRIC_DEFINE_histogram(server, handler_latency_$rpc_full_name_plainchars$,\n"
           "  \"$rpc_full_name$ RPC Time\",\n"
-          "  kudu::MetricUnit::kMicroseconds,\n"
+          "  ant::MetricUnit::kMicroseconds,\n"
           "  \"Microseconds spent handling $rpc_full_name$() RPC requests\",\n"
           "  60000000LU, 2);\n"
           "\n");
@@ -437,9 +420,9 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
 
     Print(printer, *subs,
       "using google::protobuf::Message;\n"
-      "using kudu::rpc::ResultTracker;\n"
-      "using kudu::rpc::RpcContext;\n"
-      "using kudu::rpc::RpcMethodInfo;\n"
+      "using ant::rpc::ResultTracker;\n"
+      "using ant::rpc::RpcContext;\n"
+      "using ant::rpc::RpcMethodInfo;\n"
       "using std::unique_ptr;\n"
       "\n"
       "$open_namespace$"
@@ -512,11 +495,11 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
       "\n"
       "#include \"$path_no_extension$.pb.h\"\n"
       "\n"
-      "#include \"kudu/rpc/proxy.h\"\n"
-      "#include \"kudu/util/status.h\"\n"
+      "#include \"ant/rpc/proxy.h\"\n"
+      "#include \"ant/util/status.h\"\n"
       "\n"
-      "namespace kudu { class Sockaddr; }\n"
-      "namespace kudu { namespace rpc { class UserCredentials; } }\n"
+      "namespace ant { class Sockaddr; }\n"
+      "namespace ant { namespace rpc { class UserCredentials; } }\n"
       "$open_namespace$"
       "\n"
       "\n"
@@ -528,10 +511,10 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
       subs->PushService(service);
 
       Print(printer, *subs,
-        "class $service_name$Proxy : public ::kudu::rpc::Proxy {\n"
+        "class $service_name$Proxy : public ::ant::rpc::Proxy {\n"
         " public:\n"
-        "  $service_name$Proxy(const std::shared_ptr< ::kudu::rpc::Messenger>\n"
-        "                &messenger, const ::kudu::Sockaddr &sockaddr);\n"
+        "  $service_name$Proxy(const std::shared_ptr< ::ant::rpc::Messenger>\n"
+        "                &messenger, const ::ant::Sockaddr &sockaddr);\n"
         "  ~$service_name$Proxy();\n"
         "\n"
         );
@@ -543,12 +526,12 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
 
         Print(printer, *subs,
         "\n"
-        "  ::kudu::Status $rpc_name$(const $request$ &req, $response$ *resp,\n"
-        "                          ::kudu::rpc::RpcController *controller);\n"
+        "  ::ant::Status $rpc_name$(const $request$ &req, $response$ *resp,\n"
+        "                          ::ant::rpc::RpcController *controller);\n"
         "  void $rpc_name$Async(const $request$ &req,\n"
         "                       $response$ *response,\n"
-        "                       ::kudu::rpc::RpcController *controller,\n"
-        "                       const ::kudu::rpc::ResponseCallback &callback);\n"
+        "                       ::ant::rpc::RpcController *controller,\n"
+        "                       const ::ant::rpc::ResponseCallback &callback);\n"
         );
         subs->Pop();
       }
@@ -572,8 +555,8 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
       "\n"
       "#include \"$path_no_extension$.proxy.h\"\n"
       "\n"
-      "#include \"kudu/rpc/outbound_call.h\"\n"
-      "#include \"kudu/util/net/sockaddr.h\"\n"
+      "#include \"ant/rpc/outbound_call.h\"\n"
+      "#include \"ant/util/net/sockaddr.h\"\n"
       "\n"
       "$open_namespace$"
       "\n"
@@ -585,8 +568,8 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
       subs->PushService(service);
       Print(printer, *subs,
         "$service_name$Proxy::$service_name$Proxy(\n"
-        "   const std::shared_ptr< ::kudu::rpc::Messenger> &messenger,\n"
-        "   const ::kudu::Sockaddr &remote)\n"
+        "   const std::shared_ptr< ::ant::rpc::Messenger> &messenger,\n"
+        "   const ::ant::Sockaddr &remote)\n"
         "  : Proxy(messenger, remote, \"$full_service_name$\") {\n"
         "}\n"
         "\n"
@@ -599,14 +582,14 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
         const MethodDescriptor *method = service->method(method_idx);
         subs->PushMethod(method);
         Print(printer, *subs,
-        "::kudu::Status $service_name$Proxy::$rpc_name$(const $request$ &req, $response$ *resp,\n"
-        "                                     ::kudu::rpc::RpcController *controller) {\n"
+        "::ant::Status $service_name$Proxy::$rpc_name$(const $request$ &req, $response$ *resp,\n"
+        "                                     ::ant::rpc::RpcController *controller) {\n"
         "  return SyncRequest(\"$rpc_name$\", req, resp, controller);\n"
         "}\n"
         "\n"
         "void $service_name$Proxy::$rpc_name$Async(const $request$ &req,\n"
-        "                     $response$ *resp, ::kudu::rpc::RpcController *controller,\n"
-        "                     const ::kudu::rpc::ResponseCallback &callback) {\n"
+        "                     $response$ *resp, ::ant::rpc::RpcController *controller,\n"
+        "                     const ::ant::rpc::ResponseCallback &callback) {\n"
         "  AsyncRequest(\"$rpc_name$\", req, resp, controller, callback);\n"
         "}\n"
         "\n");
@@ -620,9 +603,9 @@ class CodeGenerator : public ::google::protobuf::compiler::CodeGenerator {
   }
 };
 } // namespace rpc
-} // namespace kudu
+} // namespace ant
 
 int main(int argc, char *argv[]) {
-  kudu::rpc::CodeGenerator generator;
+  ant::rpc::CodeGenerator generator;
   return google::protobuf::compiler::PluginMain(argc, argv, &generator);
 }

@@ -10,123 +10,40 @@
 
 namespace ant {
 
-// See top-level comments in ant/base/atomicops.h for further
-// explanations of these levels.
 enum MemoryOrder {
-  // Relaxed memory ordering, doesn't use any barriers.
   kMemOrderNoBarrier = 0,
-
-  // Ensures that no later memory access by the same thread can be
-  // reordered ahead of the operation.
   kMemOrderAcquire = 1,
-
-  // Ensures that no previous memory access by the same thread can be
-  // reordered after the operation.
   kMemOrderRelease = 2,
-
-  // Ensures that neither previous NOR later memory access by the same
-  // thread can be reordered after the operation.
   kMemOrderBarrier = 3,
 };
 
-// Atomic integer class inspired by Impala's AtomicInt and
-// std::atomic<> in C++11.
-//
-// NOTE: All of public operations use an implicit memory order of
-// kMemOrderNoBarrier unless otherwise specified.
-//
-// Unlike std::atomic<>, overflowing an unsigned AtomicInt via Increment or
-// IncrementBy is undefined behavior (it is also undefined for signed types,
-// as always).
-//
-// See also: ant/base/atomicops.h
 template<typename T>
 class AtomicInt {
  public:
-  // Initialize the underlying value to 'initial_value'. The
-  // initialization performs a Store with 'kMemOrderNoBarrier'.
   explicit AtomicInt(T initial_value);
 
-  // Returns the underlying value.
-  //
-  // Does not support 'kMemOrderBarrier'.
   T Load(MemoryOrder mem_order = kMemOrderNoBarrier) const;
-
-  // Sets the underlying value to 'new_value'.
-  //
-  // Does not support 'kMemOrderBarrier'.
   void Store(T new_value, MemoryOrder mem_order = kMemOrderNoBarrier);
-
-  // Iff the underlying value is equal to 'expected_val', sets the
-  // underlying value to 'new_value' and returns true; returns false
-  // otherwise.
-  //
-  // Does not support 'kMemOrderBarrier'.
   bool CompareAndSet(T expected_val, T new_value, MemoryOrder mem_order = kMemOrderNoBarrier);
-
-  // Iff the underlying value is equal to 'expected_val', sets the
-  // underlying value to 'new_value' and returns
-  // 'expected_val'. Otherwise, returns the current underlying
-  // value.
-  //
-  // Does not support 'kMemOrderBarrier'.
   T CompareAndSwap(T expected_val, T new_value, MemoryOrder mem_order = kMemOrderNoBarrier);
-
-  // Sets the underlying value to 'new_value' iff 'new_value' is
-  // greater than the current underlying value.
-  //
-  // Does not support 'kMemOrderBarrier'.
   void StoreMax(T new_value, MemoryOrder mem_order = kMemOrderNoBarrier);
-
-  // Sets the underlying value to 'new_value' iff 'new_value' is less
-  // than the current underlying value.
-  //
-  // Does not support 'kMemOrderBarrier'.
   void StoreMin(T new_value, MemoryOrder mem_order = kMemOrderNoBarrier);
-
-  // Increments the underlying value by 1 and returns the new
-  // underlying value.
-  //
-  // Does not support 'kMemOrderAcquire' or 'kMemOrderRelease'.
   T Increment(MemoryOrder mem_order = kMemOrderNoBarrier);
-
-  // Increments the underlying value by 'delta' and returns the new
-  // underlying value.
-
-  // Does not support 'kKemOrderAcquire' or 'kMemOrderRelease'.
   T IncrementBy(T delta, MemoryOrder mem_order = kMemOrderNoBarrier);
-
-  // Sets the underlying value to 'new_value' and returns the previous
-  // underlying value.
-  //
-  // Does not support 'kMemOrderBarrier'.
   T Exchange(T new_value, MemoryOrder mem_order = kMemOrderNoBarrier);
 
  private:
-  // If a method 'caller' doesn't support memory order described as
-  // 'requested', exit by doing perform LOG(FATAL) logging the method
-  // called, the requested memory order, and the supported memory
-  // orders.
   static void FatalMemOrderNotSupported(const char* caller,
                                         const char* requested = "kMemOrderBarrier",
                                         const char* supported =
                                         "kMemNorderNoBarrier, kMemOrderAcquire, kMemOrderRelease");
 
-  // The gutil/atomicops.h functions only operate on signed types.
-  // So, even if the user specializes on an unsigned type, we use a
-  // signed type internally.
   typedef typename std::make_signed<T>::type SignedT;
   SignedT value_;
 
   DISALLOW_COPY_AND_ASSIGN(AtomicInt);
 };
 
-// Adapts AtomicInt to handle boolean values.
-//
-// NOTE: All of public operations use an implicit memory order of
-// kMemOrderNoBarrier unless otherwise specified.
-//
-// See AtomicInt above for documentation on individual methods.
 class AtomicBool {
  public:
   explicit AtomicBool(bool value);

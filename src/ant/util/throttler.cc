@@ -46,4 +46,4 @@ void Throttler::Refill(MonoTime now) {
   byte_token_ = std::min(byte_token_, byte_token_max_);
 }
 
-} // namespace kudu
+} // namespace ant

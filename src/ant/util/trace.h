@@ -288,5 +288,5 @@ class ScopedTraceLatencyCounter {
   DISALLOW_COPY_AND_ASSIGN(ScopedTraceLatencyCounter);
 };
 
-} // namespace kudu
+} // namespace ant
 #endif /* KUDU_UTIL_TRACE_H */
