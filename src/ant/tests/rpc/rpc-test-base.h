@@ -1,19 +1,3 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
 #ifndef KUDU_RPC_RPC_TEST_BASE_H
 #define KUDU_RPC_RPC_TEST_BASE_H
 
@@ -23,60 +7,60 @@
 #include <memory>
 #include <string>
 
-#include "kudu/gutil/walltime.h"
-#include "kudu/rpc/acceptor_pool.h"
-#include "kudu/rpc/messenger.h"
-#include "kudu/rpc/proxy.h"
-#include "kudu/rpc/reactor.h"
-#include "kudu/rpc/remote_method.h"
-#include "kudu/rpc/result_tracker.h"
-#include "kudu/rpc/rpc_context.h"
-#include "kudu/rpc/rpc_sidecar.h"
-#include "kudu/rpc/rtest.pb.h"
-#include "kudu/rpc/rtest.proxy.h"
-#include "kudu/rpc/rtest.service.h"
-#include "kudu/rpc/service_if.h"
-#include "kudu/rpc/service_pool.h"
-#include "kudu/util/env.h"
-#include "kudu/util/faststring.h"
-#include "kudu/util/mem_tracker.h"
-#include "kudu/util/net/sockaddr.h"
-#include "kudu/util/path_util.h"
-#include "kudu/util/random.h"
-#include "kudu/util/random_util.h"
-#include "kudu/util/stopwatch.h"
-#include "kudu/util/test_util.h"
-#include "kudu/util/trace.h"
+#include "ant/base/walltime.h"
+#include "ant/rpc/acceptor_pool.h"
+#include "ant/rpc/messenger.h"
+#include "ant/rpc/proxy.h"
+#include "ant/rpc/reactor.h"
+#include "ant/rpc/remote_method.h"
+#include "ant/rpc/result_tracker.h"
+#include "ant/rpc/rpc_context.h"
+#include "ant/rpc/rpc_sidecar.h"
+#include "ant/rpc/rtest.pb.h"
+#include "ant/rpc/rtest.proxy.h"
+#include "ant/rpc/rtest.service.h"
+#include "ant/rpc/service_if.h"
+#include "ant/rpc/service_pool.h"
+#include "ant/util/env.h"
+#include "ant/util/faststring.h"
+#include "ant/util/mem_tracker.h"
+#include "ant/util/net/sockaddr.h"
+#include "ant/util/path_util.h"
+#include "ant/util/random.h"
+#include "ant/util/random_util.h"
+#include "ant/util/stopwatch.h"
+#include "ant/util/test_util.h"
+#include "ant/util/trace.h"
 
 DECLARE_string(rpc_ssl_server_certificate);
 DECLARE_string(rpc_ssl_private_key);
 DECLARE_string(rpc_ssl_certificate_authority);
 
-namespace kudu { namespace rpc {
+namespace ant { namespace rpc {
 
-using kudu::rpc_test::AddRequestPB;
-using kudu::rpc_test::AddRequestPartialPB;
-using kudu::rpc_test::AddResponsePB;
-using kudu::rpc_test::CalculatorError;
-using kudu::rpc_test::CalculatorServiceIf;
-using kudu::rpc_test::CalculatorServiceProxy;
-using kudu::rpc_test::EchoRequestPB;
-using kudu::rpc_test::EchoResponsePB;
-using kudu::rpc_test::ExactlyOnceRequestPB;
-using kudu::rpc_test::ExactlyOnceResponsePB;
-using kudu::rpc_test::FeatureFlags;
-using kudu::rpc_test::PanicRequestPB;
-using kudu::rpc_test::PanicResponsePB;
-using kudu::rpc_test::SendTwoStringsRequestPB;
-using kudu::rpc_test::SendTwoStringsResponsePB;
-using kudu::rpc_test::SleepRequestPB;
-using kudu::rpc_test::SleepResponsePB;
-using kudu::rpc_test::TestInvalidResponseRequestPB;
-using kudu::rpc_test::TestInvalidResponseResponsePB;
-using kudu::rpc_test::WhoAmIRequestPB;
-using kudu::rpc_test::WhoAmIResponsePB;
-using kudu::rpc_test_diff_package::ReqDiffPackagePB;
-using kudu::rpc_test_diff_package::RespDiffPackagePB;
+using ant::rpc_test::AddRequestPB;
+using ant::rpc_test::AddRequestPartialPB;
+using ant::rpc_test::AddResponsePB;
+using ant::rpc_test::CalculatorError;
+using ant::rpc_test::CalculatorServiceIf;
+using ant::rpc_test::CalculatorServiceProxy;
+using ant::rpc_test::EchoRequestPB;
+using ant::rpc_test::EchoResponsePB;
+using ant::rpc_test::ExactlyOnceRequestPB;
+using ant::rpc_test::ExactlyOnceResponsePB;
+using ant::rpc_test::FeatureFlags;
+using ant::rpc_test::PanicRequestPB;
+using ant::rpc_test::PanicResponsePB;
+using ant::rpc_test::SendTwoStringsRequestPB;
+using ant::rpc_test::SendTwoStringsResponsePB;
+using ant::rpc_test::SleepRequestPB;
+using ant::rpc_test::SleepResponsePB;
+using ant::rpc_test::TestInvalidResponseRequestPB;
+using ant::rpc_test::TestInvalidResponseResponsePB;
+using ant::rpc_test::WhoAmIRequestPB;
+using ant::rpc_test::WhoAmIResponsePB;
+using ant::rpc_test_diff_package::ReqDiffPackagePB;
+using ant::rpc_test_diff_package::RespDiffPackagePB;
 
 // Implementation of CalculatorService which just implements the generic
 // RPC handler (no generated code).
@@ -237,7 +221,7 @@ class CalculatorService : public CalculatorServiceIf {
 
   void TestArgumentsInDiffPackage(const ReqDiffPackagePB *req,
                                   RespDiffPackagePB *resp,
-                                  ::kudu::rpc::RpcContext *context) override {
+                                  ::ant::rpc::RpcContext *context) override {
     context->RespondSuccess();
   }
 
@@ -269,7 +253,7 @@ class CalculatorService : public CalculatorServiceIf {
   }
 
   void AddExactlyOnce(const ExactlyOnceRequestPB* req, ExactlyOnceResponsePB* resp,
-                      ::kudu::rpc::RpcContext* context) override {
+                      ::ant::rpc::RpcContext* context) override {
     if (req->sleep_for_ms() > 0) {
       usleep(req->sleep_for_ms() * 1000);
     }
@@ -555,7 +539,7 @@ class RpcTestBase : public KuduTest {
   string service_name_;
   std::shared_ptr<Messenger> server_messenger_;
   scoped_refptr<ServicePool> service_pool_;
-  std::shared_ptr<kudu::MemTracker> mem_tracker_;
+  std::shared_ptr<ant::MemTracker> mem_tracker_;
   scoped_refptr<ResultTracker> result_tracker_;
   int n_worker_threads_;
   int service_queue_length_;

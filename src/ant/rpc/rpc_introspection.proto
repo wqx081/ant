@@ -1,6 +1,6 @@
 package ant.rpc;
 
-import "rpc_header.proto";
+import "ant/rpc/rpc_header.proto";
 
 message RpcCallInProgressPB {
   required RequestHeader header = 1;

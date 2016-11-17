@@ -180,6 +180,7 @@ static void InitializeSystemInfo() {
 
   bool saw_mhz = false;
 
+#if 0
   if (RunningOnValgrind()) {
     // Valgrind may slow the progress of time artificially (--scale-time=N
     // option). We thus can't rely on CPU Mhz info stored in /sys or /proc
@@ -187,6 +188,7 @@ static void InitializeSystemInfo() {
     cpuinfo_cycles_per_second = EstimateCyclesPerSecond(100);
     saw_mhz = true;
   }
+#endif
 
 #if defined(__linux__) || defined(__CYGWIN__) || defined(__CYGWIN32__)
   char line[1024];
