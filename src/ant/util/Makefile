@@ -42,6 +42,7 @@ CPP_SOURCES :=  \
 	string_case.cc	\
 	striped64.cc	\
 	subprocess.cc	\
+	test_util.cc \
 	thread.cc	\
 	threadlocal.cc	\
 	threadpool.cc	\
