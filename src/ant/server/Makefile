@@ -1,4 +1,3 @@
-SRC_DIR=/home/mpr/projects/ant/src
 
 CXXFLAGS += -I$(SRC_DIR)
 CXXFLAGS += -std=c++11 -Wall -Werror -Wno-sign-compare -Wno-deprecated -g -c -o
@@ -9,10 +8,17 @@ CFLAGS +=  -std=c99 -O2 -W -Wall -pedantic -pthread -pipe -c -o
 CC=gcc
 
 CPP_SOURCES := \
-	./rpc_server.cc \
-	./web_server.cc \
-	./pprof_path_handlers.cc \
-	./default_path_handlers.cc \
+	rpc_server.cc \
+	web_server.cc \
+	pprof_path_handlers.cc \
+	default_path_handlers.cc \
+	server_base_options.cc \
+	server_base.pb.cc \
+	server_base.service.pb.cc \
+	server_base.proxy.pb.cc \
+	server_base.cc \
+	logical_clock.cc \
+	hybrid_clock.cc \
 
 CPP_OBJECTS := $(CPP_SOURCES:.cc=.o)
 
@@ -45,6 +51,13 @@ $(STATIC_LIB): $(OBJECTS)
 %.pb.cc: %.proto
 	@echo "  [GEN]  $@"
 	@protoc  --cpp_out $(SRC_DIR) --proto_path $(SRC_DIR) --proto_path /usr/local/include $(CURDIR)/$<
+
+%.service.pb.cc: %.proto
+	protoc  --plugin=$(SRC_DIR)/ant/rpc/protoc-gen-krpc --krpc_out $(SRC_DIR)  --proto_path $(SRC_DIR) \
+	--proto_path /usr/local/include $(CURDIR)/$<
+%.proxy.pb.cc: %.proto
+	protoc  --plugin=$(SRC_DIR)/ant/rpc/protoc-gen-krpc --krpc_out $(SRC_DIR)  --proto_path $(SRC_DIR) \
+	--proto_path /usr/local/include $(CURDIR)/$<
 
 clean:
 	@rm -fr $(OBJECTS)

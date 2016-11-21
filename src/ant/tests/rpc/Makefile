@@ -1,4 +1,3 @@
-SRC_DIR=/home/mpr/projects/ant/src
 
 CXXFLAGS += -I$(SRC_DIR)
 CXXFLAGS += -std=c++11 -Wall -Werror -Wno-sign-compare -Wno-deprecated -g -c -o

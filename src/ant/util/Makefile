@@ -1,4 +1,3 @@
-SRC_DIR=/home/mpr/projects/ant/src
 
 CXXFLAGS += -I$(SRC_DIR)
 CXXFLAGS += -std=c++11 -Wall -Werror -Wno-sign-compare -Wno-deprecated -g -c -o
@@ -35,8 +34,10 @@ CPP_SOURCES :=  \
 	net/socket.cc	\
 	net/ssl_factory.cc	\
 	net/ssl_socket.cc	\
+	oid_generator.cc \
 	path_util.cc	\
 	random_util.cc	\
+	rolling_log.cc \
 	rw_mutex.cc \
 	semaphore.cc	\
 	spinlock_profiling.cc \

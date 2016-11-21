@@ -1,0 +1,17 @@
+package ant;
+
+message InstanceMetadataPB {
+  required bytes uuid = 1;
+  required string format_stamp = 2;
+}
+
+message PathSetPB {
+  required bytes uuid = 1;
+  repeated bytes all_uuids = 1;
+}
+
+message PathInstanceMetadataPB {
+  required PathSetPB path_set = 1;
+  required string block_manager_type = 2;
+  required uint64 filesystem_block_size_bytes = 3;
+}

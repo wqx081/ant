@@ -1,4 +1,7 @@
 
+include build_config.mk
+export
+
 all:
 	make -C ${CURDIR}/ant/base
 	make -C ${CURDIR}/ant/util

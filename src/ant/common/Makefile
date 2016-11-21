@@ -1,5 +1,3 @@
-SRC_DIR=/home/mpr/projects/ant/src
-
 CXXFLAGS += -I$(SRC_DIR)
 CXXFLAGS += -std=c++11 -Wall -Werror -Wno-sign-compare -Wno-deprecated -g -c -o
 
@@ -7,9 +5,12 @@ CXX=g++
 
 
 CPP_SOURCES := \
-	./common.pb.cc \
-	./wire_protocol.pb.cc \
-	./timestamp.cc \
+	common.pb.cc \
+	wire_protocol.pb.cc \
+	wire_protocol.cc \
+	version_info.pb.cc \
+	version_info.cc \
+	timestamp.cc \
 
 CPP_OBJECTS := $(CPP_SOURCES:.cc=.o)
 

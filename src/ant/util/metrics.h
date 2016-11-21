@@ -579,7 +579,7 @@ class AtomicGauge : public Gauge {
 //  public:
 //   MyClassWithMetrics(const scoped_refptr<MetricEntity>& entity) {
 //     METRIC_my_metric.InstantiateFunctionGauge(entity,
-//       Bind(&MyClassWithMetrics::ComputeMyMetric, Unretained(this)))
+//       base::Bind(&MyClassWithMetrics::ComputeMyMetric, Unretained(this)))
 //       ->AutoDetach(&metric_detacher_);
 //   }
 //   ~MyClassWithMetrics() {
@@ -637,7 +637,7 @@ class FunctionGauge : public Gauge {
   // Gauge, use a normal Gauge instead of a FunctionGauge.
   void DetachToConstant(T v) {
     std::lock_guard<simple_spinlock> l(lock_);
-    function_ = Bind(&FunctionGauge::Return, v);
+    function_ = base::Bind(&FunctionGauge::Return, v);
   }
 
   // Get the current value of the gauge, and detach so that it continues to return this
@@ -650,7 +650,7 @@ class FunctionGauge : public Gauge {
   // Automatically detach this gauge when the given 'detacher' destructs.
   // After detaching, the metric will return 'value' in perpetuity.
   void AutoDetach(FunctionGaugeDetacher* detacher, T value = T()) {
-    detacher->OnDestructor(Bind(&FunctionGauge<T>::DetachToConstant,
+    detacher->OnDestructor(base::Bind(&FunctionGauge<T>::DetachToConstant,
                                 this, value));
   }
 
@@ -664,7 +664,7 @@ class FunctionGauge : public Gauge {
   // should declare the detacher member after all other class members that might be
   // accessed by the gauge function implementation.
   void AutoDetachToLastValue(FunctionGaugeDetacher* detacher) {
-    detacher->OnDestructor(Bind(&FunctionGauge<T>::DetachToCurrentValue,
+    detacher->OnDestructor(base::Bind(&FunctionGauge<T>::DetachToCurrentValue,
                                 this));
   }
 

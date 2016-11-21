@@ -1,4 +1,3 @@
-SRC_DIR=/home/mpr/projects/ant/src
 
 CXXFLAGS += -I$(SRC_DIR)
 CXXFLAGS += -std=c++11 -Wall -Werror -Wno-sign-compare -Wno-deprecated -g -c -o
@@ -60,7 +59,7 @@ protoc-gen-krpc: protoc-gen-krpc.o
 	@echo "  [LINK] $@"
 	@$(CXX) -o $@ protoc-gen-krpc.o rpc_header.pb.o $(SRC_DIR)/ant/base/libbase.a \
 		$(SRC_DIR)/ant/util/libutil.a \
-		-lglog -lgflags -lprotobuf -lprotoc -lpthread
+		-lglog -lgflags -L/usr/local/lib -lprotobuf -lprotoc -lpthread
 
 protoc-gen-krpc.o: protoc-gen-krpc.cc
 	@echo "  [CXX]  $@"
