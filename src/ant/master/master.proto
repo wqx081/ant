@@ -1,0 +1,55 @@
+package ant.master;
+
+//import "ant/common/common.proto";
+import "ant/common/wire_protocol.proto";
+
+message MasterErrorPB {
+  enum Code {
+    UNKNOWN_ERROR = 1;
+    //
+  }
+
+  required Code code = 1;
+  required AppStatusPB status = 2;
+}
+
+
+message WorkerToMasterCommonPB {
+  required NodeInstancePB worker_instance = 1;
+}
+
+////////////////////////// RPCs
+
+message PingRequestPB {
+}
+
+message PingResponsePB {
+}
+
+message WorkerHeartbeatRequestPB {
+  required WorkerToMasterCommonPB common = 1;
+  optional ServerRegistrationPB registration = 2;
+  //
+}
+
+message WorkerHeartbeatResponsePB {
+  optional MasterErrorPB error = 1;
+  optional NodeInstancePB master_instance = 2;
+  optional bool needs_reregister = 3 [ default = false ];
+  //TODO(wqx):
+  // optional bool leader_master = 4;
+}
+
+
+service MasterService {
+  rpc Ping(PingRequestPB) returns (PingResponsePB);
+  
+  // Worker -> Master RPCs
+  rpc WorkerHeartbeat(WorkerHeartbeatRequestPB) returns (WorkerHeartbeatResponsePB);
+
+  // Client -> Master RPCS
+  //
+
+  // Administrative/monitoring RPCs
+  //
+}

@@ -9,6 +9,7 @@ CPP_SOURCES :=  \
 	atomic.cc	\
 	base64.cc	\
 	condition_variable.cc	\
+	debug-util.cc \
 	env.cc	\
 	env_posix.cc	\
 	errno.cc	\
@@ -24,6 +25,7 @@ CPP_SOURCES :=  \
 	memory/memory.cc	\
 	memory/overwrite.cc	\
 	mem_tracker.cc	\
+	memcmpable_varint.cc \
 	metrics.cc	\
 	monotime.cc	\
 	mutex.cc	\
@@ -35,7 +37,9 @@ CPP_SOURCES :=  \
 	net/ssl_socket.cc	\
 	path_util.cc	\
 	random_util.cc	\
+	rw_mutex.cc \
 	semaphore.cc	\
+	spinlock_profiling.cc \
 	slice.cc	\
 	status_callback.cc	\
 	status.cc	\

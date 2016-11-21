@@ -1,0 +1,6 @@
+package ant;
+
+message HostPortPB {
+  required string host = 1;
+  required uint32 port = 2;
+}

@@ -86,16 +86,8 @@
 #define METRIC_DECLARE_histogram(name) \
   extern ::ant::HistogramPrototype METRIC_##name
 
-#if defined(__APPLE__)
-#define METRIC_DEFINE_gauge_size(entity, name, label, unit, desc, ...) \
-  ::ant::GaugePrototype<size_t> METRIC_##name(                    \
-      ::ant::MetricPrototype::CtorArgs(#entity, #name, label, unit, desc, ## __VA_ARGS__))
-#define METRIC_DECLARE_gauge_size(name) \
-  extern ::ant::GaugePrototype<size_t> METRIC_##name
-#else
 #define METRIC_DEFINE_gauge_size METRIC_DEFINE_gauge_uint64
 #define METRIC_DECLARE_gauge_size METRIC_DECLARE_gauge_uint64
-#endif
 
 namespace ant {
 
