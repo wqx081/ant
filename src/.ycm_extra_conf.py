@@ -61,6 +61,8 @@ flags = [
 '-g',
 '-fPIC',
 '-I',
+'.',
+'-I',
 'src',
 '-I',
 'build/latest/src',

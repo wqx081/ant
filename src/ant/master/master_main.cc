@@ -4,6 +4,7 @@
 #include "ant/base/strings/substitute.h"
 #include "ant/master/master.h"
 #include "ant/common/version_info.h"
+#include "ant/util/logging.h"
 
 using ant::master::Master;
 
@@ -20,7 +21,7 @@ static int MasterMain(int argc, char** argv) {
   FLAGS_webserver_port = Master::kDefaultWebPort;
 
   google::ParseCommandLineFlags(&argc, &argv, true);
-  google::InitGoogleLogging(argv[0]);
+  ant::InitGoogleLoggingSafe(argv[0]);
 
   MasterOptions opts;
   Master server(opts);

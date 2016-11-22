@@ -19,6 +19,7 @@ CPP_SOURCES :=  \
 	jsonreader.cc	\
 	jsonwriter.cc	\
 	locks.cc	\
+	logging.cc 	\
 	malloc.cc	\
 	memory/arena.cc	\
 	memory/memory.cc	\

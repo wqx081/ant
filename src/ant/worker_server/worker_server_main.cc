@@ -7,6 +7,7 @@
 
 #include "ant/worker_server/worker_server.h"
 #include "ant/common/version_info.h"
+#include "ant/util/logging.h"
 
 using ant::worker_server::WorkerServer;
 
@@ -30,6 +31,7 @@ static int WorkerServerMain(int argc, char** argv) {
     std::cerr << "usage: " << argv[0] << std::endl;
     return 1;
   }
+  ant::InitGoogleLoggingSafe(argv[0]);
 
   WorkerServerOptions opts;
   WorkerServer server(opts);

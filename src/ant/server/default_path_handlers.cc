@@ -22,7 +22,7 @@
 #include "ant/base/strings/substitute.h"
 //#include "ant/util/flag_tags.h"
 #include "ant/util/histogram.pb.h"
-//#include "ant/util/logging.h"
+#include "ant/util/logging.h"
 #include "ant/util/mem_tracker.h"
 #include "ant/util/metrics.h"
 #include "ant/util/jsonwriter.h"
@@ -40,18 +40,6 @@ DEFINE_int64(web_log_bytes, 1024 * 1024,
 TAG_FLAG(web_log_bytes, advanced);
 TAG_FLAG(web_log_bytes, runtime);
 #endif
-
-//TODO(wqx):
-DEFINE_string(log_filename, "",
-              "Prefix of log filename - "
-              "full path is <log_dir>/<log_filename>.[INFO|WARN|ERROR|FATAL]");
-
-static void GetFullLogFilename(google::LogSeverity severity, string* filename) {
-  std::ostringstream ss;
-  ss << FLAGS_log_dir << "/" << FLAGS_log_filename << "."
-     << google::GetLogSeverityName(severity);
-  *filename = ss.str();
-}
 
 namespace ant {
 

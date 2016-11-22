@@ -24,12 +24,12 @@ DEFINE_int32(max_clock_sync_error_usec, 10 * 1000 * 1000, // 10 secs
 //TAG_FLAG(max_clock_sync_error_usec, advanced);
 //TAG_FLAG(max_clock_sync_error_usec, runtime);
 
-DEFINE_bool(use_hybrid_clock, true,
+DEFINE_bool(use_hybrid_clock, false,
             "Whether HybridClock should be used as the default clock"
             " implementation. This should be disabled for testing purposes only.");
 //TAG_FLAG(use_hybrid_clock, hidden);
 
-DEFINE_bool(use_mock_wall_clock, false,
+DEFINE_bool(use_mock_wall_clock, true,
             "Whether HybridClock should use a mock wall clock which is updated manually"
             "instead of reading time from the system clock, for tests.");
 //TAG_FLAG(use_mock_wall_clock, hidden);
