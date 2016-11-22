@@ -56,5 +56,5 @@ ant_worker_server: worker_server_main.o
 clean:
 	@rm -fr $(OBJECTS)
 	@rm -fr $(LIBS)
-	@rm -fr *.pb.h *.pb.cc
+	@rm -fr *.pb.h *.pb.cc ant_worker_server
 	@rm -fr *.o

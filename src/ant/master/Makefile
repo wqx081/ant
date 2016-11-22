@@ -60,4 +60,4 @@ ant_master: master_main.o
 clean:
 	@rm -fr $(OBJECTS)
 	@rm -fr $(LIBS)
-	@rm -fr *.pb.h *.pb.cc
+	@rm -fr *.pb.h *.pb.cc ant_master

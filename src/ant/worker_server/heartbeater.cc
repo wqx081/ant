@@ -290,16 +290,16 @@ Status Heartbeater::Thread::DoHeartbeat() {
   
   if (send_full_worker_report_) {
     LOG(INFO) << Substitute(
-        "Master $0 was elected leader, sending a full tablet report...",
+        "Master $0 was elected leader, sending a full worker report...",
         master_address_.ToString());
     GenerateFullWorkerReport(req.mutable_worker_report());
   } else if (last_hb_response_.needs_full_worker_report()) {
     LOG(INFO) << Substitute(
-        "Master $0 requested a full tablet report, sending...",
+        "Master $0 requested a full worker report, sending...",
         master_address_.ToString());
     GenerateFullWorkerReport(req.mutable_worker_report());
   } else {
-    VLOG(2) << Substitute("Sending an incremental tablet report to master $0...",
+    VLOG(2) << Substitute("Sending an incremental worker report to master $0...",
                           master_address_.ToString());
     GenerateIncrementWorkerReport(req.mutable_worker_report());
   }

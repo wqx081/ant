@@ -95,5 +95,5 @@ int WorkerManager::GetCount() const {
 }
 
 } // namespace master
-} // namespace kudu
+} // namespace ant
 

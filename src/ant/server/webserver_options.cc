@@ -25,7 +25,7 @@ DEFINE_string(webserver_interface, "",
 
 DEFINE_string(webserver_doc_root, ant::GetDefaultDocumentRoot(),
     "Files under <webserver_doc_root> are accessible via the debug webserver. "
-    "Defaults to $KUDU_HOME/www, or if $KUDU_HOME is not set, disables the document "
+    "Defaults to $ANT_HOME/www, or if $ANT_HOME is not set, disables the document "
     "root");
 //TAG_FLAG(webserver_doc_root, advanced);
 
@@ -53,9 +53,9 @@ DEFINE_int32(webserver_port, 0,
 
 namespace ant {
 
-// Returns KUDU_HOME if set, otherwise we won't serve any static files.
+// Returns ANT_HOME if set, otherwise we won't serve any static files.
 static string GetDefaultDocumentRoot() {
-  char* ant_home = getenv("KUDU_HOME");
+  char* ant_home = getenv("ANT_HOME");
   // Empty document root means don't serve static files
   return ant_home ? strings::Substitute("$0/www", ant_home) : "";
 }

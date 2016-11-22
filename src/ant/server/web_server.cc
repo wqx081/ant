@@ -368,7 +368,7 @@ const char* const PAGE_HEADER = "<!DOCTYPE html>"
 "   <head><title>Kudu</title>"
 " <meta charset='utf-8'/>"
 " <link href='/bootstrap/css/bootstrap.min.css' rel='stylesheet' media='screen' />"
-" <link href='/kudu.css' rel='stylesheet' />"
+" <link href='/ant.css' rel='stylesheet' />"
 " </head>"
 " <body>";
 
@@ -403,7 +403,7 @@ void WebServer::BootstrapPageHeader(ostringstream* output) {
 
   if (!static_pages_available()) {
     (*output) << "<div style=\"color: red\"><strong>"
-              << "Static pages not available. Configure KUDU_HOME or use the --webserver_doc_root "
+              << "Static pages not available. Configure ANT_HOME or use the --webserver_doc_root "
               << "flag to fix page styling.</strong></div>\n";
   }
 }

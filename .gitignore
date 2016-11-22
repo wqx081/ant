@@ -34,3 +34,5 @@
 *.app
 *_unittest
 
+*ant_master
+*ant_worker_server
