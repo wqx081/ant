@@ -190,7 +190,7 @@ Status WebServer::Start() {
     std::bind<void>(std::mem_fn(&WebServer::RootHandler),
                     this, std::placeholders::_1, std::placeholders::_2);
 
-  RegisterPathHandler("/", "Home", default_callback);
+  RegisterPathHandler("/", "首页", default_callback);
 
   vector<Sockaddr> addrs;
   RETURN_NOT_OK(GetBoundAddresses(&addrs));
@@ -365,7 +365,7 @@ void WebServer::RegisterPathHandler(const string& path, const string& alias,
 
 const char* const PAGE_HEADER = "<!DOCTYPE html>"
 " <html>"
-"   <head><title>Kudu</title>"
+"   <head><title>ANT</title>"
 " <meta charset='utf-8'/>"
 " <link href='/bootstrap/css/bootstrap.min.css' rel='stylesheet' media='screen' />"
 " <link href='/ant.css' rel='stylesheet' />"
@@ -377,7 +377,7 @@ static const char* const NAVIGATION_BAR_PREFIX =
 "      <div class='navbar-inner'>"
 "        <div class='container-fluid'>"
 "          <a href='/'>"
-"            <img src=\"/logo.png\" width='61' height='45' alt=\"Kudu\" style=\"float:left\"/>"
+"            <img src=\"/logo.png\" width='61' height='45' alt=\"ANT\" style=\"float:left\"/>"
 "          </a>"
 "          <div class='nav-collapse collapse'>"
 "            <ul class='nav'>";

@@ -160,10 +160,10 @@ static void MemTrackersHandler(const WebServer::WebRequest& req, std::ostringstr
 }
 
 void AddDefaultPathHandlers(WebServer* webserver) {
-  webserver->RegisterPathHandler("/logs", "Logs", LogsHandler);
-  webserver->RegisterPathHandler("/varz", "Flags", FlagsHandler);
-  webserver->RegisterPathHandler("/memz", "Memory (total)", MemUsageHandler);
-  webserver->RegisterPathHandler("/mem-trackers", "Memory (detail)", MemTrackersHandler);
+  webserver->RegisterPathHandler("/logs", "日志", LogsHandler);
+  webserver->RegisterPathHandler("/varz", "启动选项", FlagsHandler);
+  webserver->RegisterPathHandler("/memz", "内存 (total)", MemUsageHandler);
+  webserver->RegisterPathHandler("/mem-trackers", "内存 (detail)", MemTrackersHandler);
 
   AddPprofPathHandlers(webserver);
 }
@@ -208,11 +208,11 @@ void RegisterMetricsJsonHandler(WebServer* webserver, const MetricRegistry* cons
   bool not_styled = false;
   bool not_on_nav_bar = false;
   bool is_on_nav_bar = true;
-  webserver->RegisterPathHandler("/metrics", "Metrics", callback, not_styled, is_on_nav_bar);
+  webserver->RegisterPathHandler("/metrics", "度量", callback, not_styled, is_on_nav_bar);
 
   // The old name -- this is preserved for compatibility with older releases of
   // monitoring software which expects the old name.
-  webserver->RegisterPathHandler("/jsonmetricz", "Metrics", callback, not_styled, not_on_nav_bar);
+  webserver->RegisterPathHandler("/jsonmetricz", "度量", callback, not_styled, not_on_nav_bar);
 }
 
 } // namespace ant
