@@ -11,6 +11,9 @@ CPP_SOURCES := \
 	master.proxy.pb.cc \
 	worker_descriptor.cc \
 	worker_manager.cc \
+	master_options.cc \
+	master_service.cc \
+	master.cc \
 
 CPP_OBJECTS := $(CPP_SOURCES:.cc=.o)
 
@@ -21,7 +24,7 @@ LIBS += $(STATIC_LIB)
 
 OBJECTS += $(CPP_OBJECTS)
 
-all: $(OBJECTS) $(LIBS)
+all: $(OBJECTS) $(LIBS) ant_master
 
 $(STATIC_LIB): $(OBJECTS)
 	@echo "  [LINK] $@"
@@ -41,6 +44,18 @@ $(STATIC_LIB): $(OBJECTS)
 %.proxy.pb.cc: %.proto
 	protoc  --plugin=$(SRC_DIR)/ant/rpc/protoc-gen-krpc --krpc_out $(SRC_DIR)  --proto_path $(SRC_DIR) \
 		--proto_path /usr/local/include $(CURDIR)/$<
+
+ant_master: master_main.o
+	@echo "  [LINK] $@"
+	@$(CXX) -o $@ master_main.o \
+		$(SRC_DIR)/ant/master/libmaster.a \
+		$(SRC_DIR)/ant/server/libserver.a \
+		$(SRC_DIR)/ant/common/libcommon.a \
+		$(SRC_DIR)/ant/rpc/librpc.a \
+		$(SRC_DIR)/ant/util/libutil.a \
+		$(SRC_DIR)/ant/base/libbase.a \
+	-lglog -lgflags -L/usr/local/lib -lprotobuf -lprotoc -lpthread -lssl -lcrypto \
+	-lz -lev -lsasl2 -lpcre -ldl
 
 clean:
 	@rm -fr $(OBJECTS)

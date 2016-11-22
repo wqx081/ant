@@ -35,6 +35,8 @@
 #include "ant/util/env.h"
 #include "ant/util/rolling_log.h"
 
+#include "ant/util/oid_generator.h"
+
 DEFINE_int32(num_reactor_threads, 4, 
 "Number of libev reactor threads to start.");
 
@@ -124,7 +126,10 @@ const NodeInstancePB& ServerBase::instance_pb() const {
 void ServerBase::GenerateInstanceID() {
   instance_pb_.reset(new NodeInstancePB);
   //TODO(wqx):
-  instance_pb_->set_permanent_uuid("TODO UUID");
+  ObjectIdGenerator oid_generator;
+  std::string uuid = oid_generator.Next();
+  instance_pb_->set_permanent_uuid(uuid);
+
   instance_pb_->set_instance_seqno(Env::Default()->NowMicros());
 }
 
@@ -271,6 +276,7 @@ std::string ServerBase::FooterHtml() const {
 }
 
 Status ServerBase::Start() {
+
   GenerateInstanceID();
 
   RETURN_NOT_OK(RegisterService(make_gscoped_ptr<rpc::ServiceIf>(

@@ -10,6 +10,7 @@ CC=gcc
 CPP_SOURCES := \
 	rpc_server.cc \
 	web_server.cc \
+	webserver_options.cc \
 	pprof_path_handlers.cc \
 	default_path_handlers.cc \
 	server_base_options.cc \
@@ -19,6 +20,9 @@ CPP_SOURCES := \
 	server_base.cc \
 	logical_clock.cc \
 	hybrid_clock.cc \
+	glog_metrics.cc \
+	generic_service.cc \
+
 
 CPP_OBJECTS := $(CPP_SOURCES:.cc=.o)
 

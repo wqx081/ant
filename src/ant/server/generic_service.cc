@@ -44,7 +44,8 @@ void GenericServiceImpl::SetFlag(const SetFlagRequestPB* req,
 
   // Validate that the flag is runtime-changeable.
   unordered_set<string> tags;
-  GetFlagTags(req->flag(), &tags);
+//TODO(wqx):
+//  GetFlagTags(req->flag(), &tags);
   if (!ContainsKey(tags, "runtime")) {
     if (req->force()) {
       LOG(WARNING) << rpc->requestor_string() << " forcing change of "
