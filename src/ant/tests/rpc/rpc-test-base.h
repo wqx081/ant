@@ -16,9 +16,11 @@
 #include "ant/rpc/result_tracker.h"
 #include "ant/rpc/rpc_context.h"
 #include "ant/rpc/rpc_sidecar.h"
-#include "ant/rpc/rtest.pb.h"
-#include "ant/rpc/rtest.proxy.h"
-#include "ant/rpc/rtest.service.h"
+
+#include "ant/tests/rpc/rtest.pb.h"
+#include "ant/tests/rpc/rtest.proxy.pb.h"
+#include "ant/tests/rpc/rtest.service.pb.h"
+
 #include "ant/rpc/service_if.h"
 #include "ant/rpc/service_pool.h"
 #include "ant/util/env.h"
@@ -289,7 +291,7 @@ class CalculatorService : public CalculatorServiceIf {
 
 };
 
-const char *GenericCalculatorService::kFullServiceName = "kudu.rpc.GenericCalculatorService";
+const char *GenericCalculatorService::kFullServiceName = "ant.rpc.GenericCalculatorService";
 const char *GenericCalculatorService::kAddMethodName = "Add";
 const char *GenericCalculatorService::kSleepMethodName = "Sleep";
 const char *GenericCalculatorService::kSendTwoStringsMethodName = "SendTwoStrings";
@@ -369,7 +371,7 @@ dc+JVPKL8Fe4a8fmsI6ndcZQ9qpOdZM5WOD0ldKRc+SsrYKkTmOOJQ==
   return Status::OK();
 }
 
-class RpcTestBase : public KuduTest {
+class RpcTestBase : public AntTest {
  public:
   RpcTestBase()
     : n_worker_threads_(3),
@@ -380,7 +382,7 @@ class RpcTestBase : public KuduTest {
   }
 
   void SetUp() override {
-    KuduTest::SetUp();
+    AntTest::SetUp();
   }
 
   void TearDown() override {
@@ -391,7 +393,7 @@ class RpcTestBase : public KuduTest {
     if (server_messenger_) {
       server_messenger_->Shutdown();
     }
-    KuduTest::TearDown();
+    AntTest::TearDown();
   }
 
  protected:
@@ -551,5 +553,5 @@ class RpcTestBase : public KuduTest {
 };
 
 } // namespace rpc
-} // namespace kudu
+} // namespace ant
 #endif
