@@ -54,10 +54,11 @@ ant_master: master_main.o
 		$(SRC_DIR)/ant/rpc/librpc.a \
 		$(SRC_DIR)/ant/util/libutil.a \
 		$(SRC_DIR)/ant/base/libbase.a \
+		$(SRC_DIR)/ant/http/libhttp.a 	\
 	-lglog -lgflags -L/usr/local/lib -lprotobuf -lprotoc -lpthread -lssl -lcrypto \
 	-lz -lev -lsasl2 -lpcre -ldl
 
 clean:
 	@rm -fr $(OBJECTS)
 	@rm -fr $(LIBS)
-	@rm -fr *.pb.h *.pb.cc ant_master
+	@rm -fr *.pb.h *.pb.cc ant_master *.o

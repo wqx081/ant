@@ -7,7 +7,7 @@ message InstanceMetadataPB {
 
 message PathSetPB {
   required bytes uuid = 1;
-  repeated bytes all_uuids = 1;
+  repeated bytes all_uuids = 2;
 }
 
 message PathInstanceMetadataPB {

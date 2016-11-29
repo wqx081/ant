@@ -7,10 +7,13 @@ CXX=g++
 CPP_SOURCES :=  \
 	atomic.cc	\
 	base64.cc	\
+	coding.cc \
 	condition_variable.cc	\
+	crc32c.cc \
 	debug-util.cc \
 	env.cc	\
 	env_posix.cc	\
+	env_util.cc \
 	errno.cc	\
 	failure_detector.cc	\
 	faststring.cc	\
@@ -37,6 +40,9 @@ CPP_SOURCES :=  \
 	net/ssl_socket.cc	\
 	oid_generator.cc \
 	path_util.cc	\
+	pb_util-internal.cc \
+	pb_util.pb.cc \
+	pb_util.cc \
 	random_util.cc	\
 	rolling_log.cc \
 	rw_mutex.cc \

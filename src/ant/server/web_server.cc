@@ -15,7 +15,7 @@
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
-#include "ant/server/squeasel/squeasel.h"
+#include "ant/http/squeasel/squeasel.h"
 
 #include "ant/base/map-util.h"
 #include "ant/base/stl_util.h"

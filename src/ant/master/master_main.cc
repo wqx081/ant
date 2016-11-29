@@ -23,6 +23,7 @@ static int MasterMain(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
   ant::InitGoogleLoggingSafe(argv[0]);
 
+  // Create MasterServer
   MasterOptions opts;
   Master server(opts);
   LOG(INFO) << "Initializing master server...";

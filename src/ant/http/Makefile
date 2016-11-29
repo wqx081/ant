@@ -5,30 +5,19 @@ CXXFLAGS += -std=c++11 -Wall -Werror -Wno-sign-compare -Wno-deprecated -g -c -o
 CXX=g++
 
 CFLAGS +=  -std=c99 -O2 -W -Wall -pedantic -pthread -pipe -c -o
+CC=gcc
 
 CPP_SOURCES := \
-	rpc_server.cc \
-	web_server.cc \
-	webserver_options.cc \
-	pprof_path_handlers.cc \
-	default_path_handlers.cc \
-	server_base_options.cc \
-	server_base.pb.cc \
-	server_base.service.pb.cc \
-	server_base.proxy.pb.cc \
-	server_base.cc \
-	logical_clock.cc \
-	hybrid_clock.cc \
-	glog_metrics.cc \
-	generic_service.cc \
 
 
 CPP_OBJECTS := $(CPP_SOURCES:.cc=.o)
 
-C_SOURCES :=
+C_SOURCES := \
+	./squeasel/squeasel.c
+
 C_OBJECTS := $(C_SOURCES:.c=.o)
 
-STATIC_LIB=libserver.a
+STATIC_LIB=libhttp.a
 
 LIBS += $(STATIC_LIB)
 
