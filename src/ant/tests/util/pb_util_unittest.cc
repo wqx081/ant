@@ -1,3 +1,20 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -8,17 +25,16 @@
 #include <google/protobuf/descriptor.pb.h>
 #include <gtest/gtest.h>
 
-#include "ant/base/gscoped_ptr.h"
-#include "ant/util/env_util.h"
-#include "ant/util/pb_util.h"
-#include "ant/util/pb_util-internal.h"
-#include "ant/util/proto_container_test.pb.h"
-#include "ant/util/proto_container_test2.pb.h"
-#include "ant/util/proto_container_test3.pb.h"
-#include "ant/util/status.h"
-#include "ant/util/test_util.h"
+#include "kudu/util/env_util.h"
+#include "kudu/util/pb_util.h"
+#include "kudu/util/pb_util-internal.h"
+#include "kudu/util/proto_container_test.pb.h"
+#include "kudu/util/proto_container_test2.pb.h"
+#include "kudu/util/proto_container_test3.pb.h"
+#include "kudu/util/status.h"
+#include "kudu/util/test_util.h"
 
-namespace ant {
+namespace kudu {
 namespace pb_util {
 
 using google::protobuf::FileDescriptorSet;
@@ -96,7 +112,7 @@ Status TestPBUtil::CreateKnownGoodContainerFile(CreateMode create, SyncMode sync
 
 Status TestPBUtil::NewPBCWriter(int version, RWFileOptions opts,
                                 unique_ptr<WritablePBContainerFile>* pb_writer) {
-  gscoped_ptr<RWFile> writer;
+  unique_ptr<RWFile> writer;
   RETURN_NOT_OK(env_->NewRWFile(opts, path_, &writer));
   pb_writer->reset(new WritablePBContainerFile(std::move(writer)));
   if (version != kUseDefaultVersion) {
@@ -124,7 +140,7 @@ Status TestPBUtil::BitFlipFileByteRange(const string& path, uint64_t offset, uin
   faststring buf;
   // Read the data from disk.
   {
-    gscoped_ptr<RandomAccessFile> file;
+    unique_ptr<RandomAccessFile> file;
     RETURN_NOT_OK(env_->NewRandomAccessFile(path, &file));
     uint64_t size;
     RETURN_NOT_OK(file->Size(&size));
@@ -142,7 +158,7 @@ Status TestPBUtil::BitFlipFileByteRange(const string& path, uint64_t offset, uin
   }
 
   // Write the data back to disk.
-  gscoped_ptr<WritableFile> file;
+  unique_ptr<WritableFile> file;
   RETURN_NOT_OK(env_->NewWritableFile(path, &file));
   RETURN_NOT_OK(file->Append(buf));
   RETURN_NOT_OK(file->Close());
@@ -151,7 +167,7 @@ Status TestPBUtil::BitFlipFileByteRange(const string& path, uint64_t offset, uin
 }
 
 Status TestPBUtil::TruncateFile(const string& path, uint64_t size) {
-  gscoped_ptr<RWFile> file;
+  unique_ptr<RWFile> file;
   RWFileOptions opts;
   opts.mode = Env::OPEN_EXISTING;
   RETURN_NOT_OK(env_->NewRWFile(opts, path, &file));
@@ -235,7 +251,7 @@ TEST_P(TestPBContainerVersions, TestCorruption) {
   // Test that an empty file looks like corruption.
   {
     // Create the empty file.
-    gscoped_ptr<WritableFile> file;
+    unique_ptr<WritableFile> file;
     ASSERT_OK(env_->NewWritableFile(path_, &file));
     ASSERT_OK(file->Close());
   }
@@ -321,7 +337,7 @@ TEST_P(TestPBContainerVersions, TestPartialRecord) {
   ASSERT_OK(env_->GetFileSize(path_, &known_good_size));
   ASSERT_OK(TruncateFile(path_, known_good_size - 2));
 
-  gscoped_ptr<RandomAccessFile> file;
+  unique_ptr<RandomAccessFile> file;
   ASSERT_OK(env_->NewRandomAccessFile(path_, &file));
   ReadablePBContainerFile pb_file(std::move(file));
   ASSERT_OK(pb_file.Open());
@@ -354,7 +370,7 @@ TEST_P(TestPBContainerVersions, TestAppendAfterPartialWrite) {
 
   ASSERT_OK(TruncateFile(path_, known_good_size - 2));
 
-  gscoped_ptr<RandomAccessFile> file;
+  unique_ptr<RandomAccessFile> file;
   ASSERT_OK(env_->NewRandomAccessFile(path_, &file));
   ReadablePBContainerFile reader(std::move(file));
   ASSERT_OK(reader.Open());
@@ -410,7 +426,7 @@ TEST_P(TestPBContainerVersions, TestMultipleMessages) {
   ASSERT_OK(pb_writer->Close());
 
   int pbs_read = 0;
-  gscoped_ptr<RandomAccessFile> reader;
+  unique_ptr<RandomAccessFile> reader;
   ASSERT_OK(env_->NewRandomAccessFile(path_, &reader));
   ReadablePBContainerFile pb_reader(std::move(reader));
   ASSERT_OK(pb_reader.Open());
@@ -438,7 +454,7 @@ TEST_P(TestPBContainerVersions, TestInterleavedReadWrite) {
   // Open the file for writing and reading.
   unique_ptr<WritablePBContainerFile> pb_writer;
   ASSERT_OK(NewPBCWriter(version_, RWFileOptions(), &pb_writer));
-  gscoped_ptr<RandomAccessFile> reader;
+  unique_ptr<RandomAccessFile> reader;
   ASSERT_OK(env_->NewRandomAccessFile(path_, &reader));
   ReadablePBContainerFile pb_reader(std::move(reader));
 
@@ -492,7 +508,7 @@ TEST_F(TestPBUtil, TestPopulateDescriptorSet) {
 
 void TestPBUtil::DumpPBCToString(const string& path, bool oneline_output,
                                  string* ret) {
-  gscoped_ptr<RandomAccessFile> reader;
+  unique_ptr<RandomAccessFile> reader;
   ASSERT_OK(env_->NewRandomAccessFile(path, &reader));
   ReadablePBContainerFile pb_reader(std::move(reader));
   ASSERT_OK(pb_reader.Open());
@@ -565,4 +581,4 @@ TEST_F(TestPBUtil, TestOverwriteExistingPB) {
 }
 
 } // namespace pb_util
-} // namespace ant
+} // namespace kudu

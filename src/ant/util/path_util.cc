@@ -13,6 +13,8 @@ using std::string;
 
 namespace ant {
 
+const char kTmpInfix[] = ".anttmp";
+
 std::string JoinPathSegments(const std::string &a,
                              const std::string &b) {
   CHECK(!a.empty()) << "empty first component: " << a;

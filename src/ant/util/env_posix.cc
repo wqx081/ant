@@ -2,40 +2,45 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <fts.h>
-#include <glog/logging.h>
 #include <limits.h>
 #include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <time.h>
-#include <type_traits>
 #include <unistd.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <memory>
+#include <type_traits>
 #include <vector>
+
+#include <glog/logging.h>
 
 #include "ant/base/atomicops.h"
 #include "ant/base/bind.h"
 #include "ant/base/callback.h"
 #include "ant/base/map-util.h"
 #include "ant/base/strings/substitute.h"
+
+#include "ant/util/atomic.h"
 //#include "ant/util/debug/trace_event.h"
 #include "ant/util/env.h"
 #include "ant/util/errno.h"
 //#include "ant/util/flag_tags.h"
-//#include "ant/util/logging.h"
+#include "ant/util/logging.h"
 #include "ant/util/malloc.h"
 #include "ant/util/monotime.h"
 #include "ant/util/path_util.h"
 #include "ant/util/slice.h"
 #include "ant/util/stopwatch.h"
-//#include "ant/util/thread_restrictions.h"
-//#include "ant/util/trace.h"
+#include "ant/util/thread_restrictions.h"
+#include "ant/util/trace.h"
 
 #include <linux/falloc.h>
 #include <sys/sysinfo.h>
@@ -91,6 +96,8 @@ DEFINE_bool(never_fsync, false,
 
 using base::subtle::Atomic64;
 using base::subtle::Barrier_AtomicIncrement;
+using std::string;
+using std::unique_ptr;
 using std::vector;
 using strings::Substitute;
 
@@ -101,6 +108,7 @@ namespace ant {
 
 namespace {
 
+
 // Close file descriptor when object goes out of scope.
 class ScopedFdCloser {
  public:
@@ -109,7 +117,7 @@ class ScopedFdCloser {
   }
 
   ~ScopedFdCloser() {
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     int err = ::close(fd_);
     if (PREDICT_FALSE(err != 0)) {
       PLOG(WARNING) << "Failed to close fd " << fd_;
@@ -139,17 +147,17 @@ static Status IOError(const std::string& context, int err_number) {
 }
 
 static Status DoSync(int fd, const string& filename) {
-//  ThreadRestrictions::AssertIOAllowed();
+  ThreadRestrictions::AssertIOAllowed();
   if (FLAGS_never_fsync) return Status::OK();
   if (FLAGS_writable_file_use_fsync) {
-//    TRACE_COUNTER_SCOPE_LATENCY_US("fsync_us");
-//    TRACE_COUNTER_INCREMENT("fsync", 1);
+    TRACE_COUNTER_SCOPE_LATENCY_US("fsync_us");
+    TRACE_COUNTER_INCREMENT("fsync", 1);
     if (fsync(fd) < 0) {
       return IOError(filename, errno);
     }
   } else {
-//    TRACE_COUNTER_INCREMENT("fdatasync", 1);
-//    TRACE_COUNTER_SCOPE_LATENCY_US("fdatasync_us");
+    TRACE_COUNTER_INCREMENT("fdatasync", 1);
+    TRACE_COUNTER_SCOPE_LATENCY_US("fdatasync_us");
     if (fdatasync(fd) < 0) {
       return IOError(filename, errno);
     }
@@ -158,7 +166,7 @@ static Status DoSync(int fd, const string& filename) {
 }
 
 static Status DoOpen(const string& filename, Env::CreateMode mode, int* fd) {
-//  ThreadRestrictions::AssertIOAllowed();
+  ThreadRestrictions::AssertIOAllowed();
   int flags = O_RDWR;
   switch (mode) {
     case Env::CREATE_IF_NON_EXISTING_TRUNCATE:
@@ -190,8 +198,8 @@ class PosixSequentialFile: public SequentialFile {
       : filename_(std::move(fname)), file_(f) {}
   virtual ~PosixSequentialFile() { fclose(file_); }
 
-  virtual Status Read(size_t n, Slice* result, uint8_t* scratch) override {
-//    ThreadRestrictions::AssertIOAllowed();
+  virtual Status Read(size_t n, Slice* result, uint8_t* scratch) OVERRIDE {
+    ThreadRestrictions::AssertIOAllowed();
     Status s;
     size_t r;
     STREAM_RETRY_ON_EINTR(r, file_, fread_unlocked(scratch, 1, n, file_));
@@ -207,16 +215,16 @@ class PosixSequentialFile: public SequentialFile {
     return s;
   }
 
-  virtual Status Skip(uint64_t n) override {
+  virtual Status Skip(uint64_t n) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixSequentialFile::Skip", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     if (fseek(file_, n, SEEK_CUR)) {
       return IOError(filename_, errno);
     }
     return Status::OK();
   }
 
-  virtual const string& filename() const override { return filename_; }
+  virtual string filename() const OVERRIDE { return filename_; }
 };
 
 // pread() based random-access
@@ -231,8 +239,8 @@ class PosixRandomAccessFile: public RandomAccessFile {
   virtual ~PosixRandomAccessFile() { close(fd_); }
 
   virtual Status Read(uint64_t offset, size_t n, Slice* result,
-                      uint8_t *scratch) const override {
-//    ThreadRestrictions::AssertIOAllowed();
+                      uint8_t *scratch) const OVERRIDE {
+    ThreadRestrictions::AssertIOAllowed();
     Status s;
     ssize_t r;
     RETRY_ON_EINTR(r, pread(fd_, scratch, n, offset));
@@ -244,9 +252,9 @@ class PosixRandomAccessFile: public RandomAccessFile {
     return s;
   }
 
-  virtual Status Size(uint64_t *size) const override {
+  virtual Status Size(uint64_t *size) const OVERRIDE {
 //    TRACE_EVENT1("io", "PosixRandomAccessFile::Size", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     struct stat st;
     if (fstat(fd_, &st) == -1) {
       return IOError(filename_, errno);
@@ -255,9 +263,9 @@ class PosixRandomAccessFile: public RandomAccessFile {
     return Status::OK();
   }
 
-  virtual const string& filename() const override { return filename_; }
+  virtual string filename() const OVERRIDE { return filename_; }
 
-  virtual size_t memory_footprint() const override {
+  virtual size_t memory_footprint() const OVERRIDE {
     return ant_malloc_usable_size(this) + filename_.capacity();
   }
 };
@@ -283,14 +291,14 @@ class PosixWritableFile : public WritableFile {
     }
   }
 
-  virtual Status Append(const Slice& data) override {
+  virtual Status Append(const Slice& data) OVERRIDE {
     vector<Slice> data_vector;
     data_vector.push_back(data);
     return AppendVector(data_vector);
   }
 
-  virtual Status AppendVector(const vector<Slice>& data_vector) override {
-//    ThreadRestrictions::AssertIOAllowed();
+  virtual Status AppendVector(const vector<Slice>& data_vector) OVERRIDE {
+    ThreadRestrictions::AssertIOAllowed();
     static const size_t kIovMaxElements = IOV_MAX;
 
     Status s;
@@ -303,15 +311,15 @@ class PosixWritableFile : public WritableFile {
     return s;
   }
 
-  virtual Status PreAllocate(uint64_t size) override {
+  virtual Status PreAllocate(uint64_t size) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixWritableFile::PreAllocate", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     uint64_t offset = std::max(filesize_, pre_allocated_size_);
     if (fallocate(fd_, 0, offset, size) < 0) {
       if (errno == EOPNOTSUPP) {
-//        KLOG_FIRST_N(WARNING, 1) << "The filesystem does not support fallocate().";
+        KLOG_FIRST_N(WARNING, 1) << "The filesystem does not support fallocate().";
       } else if (errno == ENOSYS) {
-//        KLOG_FIRST_N(WARNING, 1) << "The kernel does not implement fallocate().";
+        KLOG_FIRST_N(WARNING, 1) << "The kernel does not implement fallocate().";
       } else {
         return IOError(filename_, errno);
       }
@@ -320,9 +328,9 @@ class PosixWritableFile : public WritableFile {
     return Status::OK();
   }
 
-  virtual Status Close() override {
+  virtual Status Close() OVERRIDE {
 //    TRACE_EVENT1("io", "PosixWritableFile::Close", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     Status s;
 
     // If we've allocated more space than we used, truncate to the
@@ -356,9 +364,9 @@ class PosixWritableFile : public WritableFile {
     return s;
   }
 
-  virtual Status Flush(FlushMode mode) override {
+  virtual Status Flush(FlushMode mode) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixWritableFile::Flush", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     int flags = SYNC_FILE_RANGE_WRITE;
     if (mode == FLUSH_SYNC) {
       flags |= SYNC_FILE_RANGE_WAIT_AFTER;
@@ -369,9 +377,9 @@ class PosixWritableFile : public WritableFile {
     return Status::OK();
   }
 
-  virtual Status Sync() override {
+  virtual Status Sync() OVERRIDE {
 //    TRACE_EVENT1("io", "PosixWritableFile::Sync", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     LOG_SLOW_EXECUTION(WARNING, 1000, Substitute("sync call for $0", filename_)) {
       if (pending_sync_) {
         pending_sync_ = false;
@@ -381,17 +389,17 @@ class PosixWritableFile : public WritableFile {
     return Status::OK();
   }
 
-  virtual uint64_t Size() const override {
+  virtual uint64_t Size() const OVERRIDE {
     return filesize_;
   }
 
-  virtual const string& filename() const override { return filename_; }
+  virtual string filename() const OVERRIDE { return filename_; }
 
  private:
 
   Status DoWritev(const vector<Slice>& data_vector,
                   size_t offset, size_t n) {
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     DCHECK_LE(n, IOV_MAX);
 
     struct iovec iov[n];
@@ -416,7 +424,7 @@ class PosixWritableFile : public WritableFile {
 
     filesize_ += written;
 
-    if (PREDICT_FALSE((size_t)written != nbytes)) {
+    if (PREDICT_FALSE(written != nbytes)) {
       return Status::IOError(
           Substitute("pwritev error: expected to write $0 bytes, wrote $1 bytes instead"
                      " (perhaps the disk is out of space)",
@@ -441,17 +449,16 @@ class PosixRWFile : public RWFile {
       : filename_(std::move(fname)),
         fd_(fd),
         sync_on_close_(sync_on_close),
-        pending_sync_(false) {}
+        pending_sync_(false),
+        closed_(false) {}
 
   ~PosixRWFile() {
-    if (fd_ >= 0) {
-      WARN_NOT_OK(Close(), "Failed to close " + filename_);
-    }
+    WARN_NOT_OK(Close(), "Failed to close " + filename_);
   }
 
   virtual Status Read(uint64_t offset, size_t length,
-                      Slice* result, uint8_t* scratch) const override {
-//    ThreadRestrictions::AssertIOAllowed();
+                      Slice* result, uint8_t* scratch) const OVERRIDE {
+    ThreadRestrictions::AssertIOAllowed();
     int rem = length;
     uint8_t* dst = scratch;
     while (rem > 0) {
@@ -477,8 +484,8 @@ class PosixRWFile : public RWFile {
     return Status::OK();
   }
 
-  virtual Status Write(uint64_t offset, const Slice& data) override {
-//    ThreadRestrictions::AssertIOAllowed();
+  virtual Status Write(uint64_t offset, const Slice& data) OVERRIDE {
+    ThreadRestrictions::AssertIOAllowed();
     ssize_t written;
     RETRY_ON_EINTR(written, pwrite(fd_, data.data(), data.size(), offset));
 
@@ -487,25 +494,25 @@ class PosixRWFile : public RWFile {
       return IOError(filename_, err);
     }
 
-    if (PREDICT_FALSE((size_t)written != data.size())) {
+    if (PREDICT_FALSE(written != data.size())) {
       return Status::IOError(
           Substitute("pwrite error: expected to write $0 bytes, wrote $1 bytes instead"
                      " (perhaps the disk is out of space)",
                      data.size(), written));
     }
 
-    pending_sync_ = true;
+    pending_sync_.Store(true);
     return Status::OK();
   }
 
-  virtual Status PreAllocate(uint64_t offset, size_t length) override {
+  virtual Status PreAllocate(uint64_t offset, size_t length) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixRWFile::PreAllocate", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     if (fallocate(fd_, 0, offset, length) < 0) {
       if (errno == EOPNOTSUPP) {
-//        KLOG_FIRST_N(WARNING, 1) << "The filesystem does not support fallocate().";
+        KLOG_FIRST_N(WARNING, 1) << "The filesystem does not support fallocate().";
       } else if (errno == ENOSYS) {
-//        KLOG_FIRST_N(WARNING, 1) << "The kernel does not implement fallocate().";
+        KLOG_FIRST_N(WARNING, 1) << "The kernel does not implement fallocate().";
       } else {
         return IOError(filename_, errno);
       }
@@ -513,9 +520,9 @@ class PosixRWFile : public RWFile {
     return Status::OK();
   }
 
-  virtual Status Truncate(uint64_t length) override {
+  virtual Status Truncate(uint64_t length) OVERRIDE {
 //    TRACE_EVENT2("io", "PosixRWFile::Truncate", "path", filename_, "length", length);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     int ret;
     RETRY_ON_EINTR(ret, ftruncate(fd_, length));
     if (ret != 0) {
@@ -527,18 +534,18 @@ class PosixRWFile : public RWFile {
     return Status::OK();
   }
 
-  virtual Status PunchHole(uint64_t offset, size_t length) override {
+  virtual Status PunchHole(uint64_t offset, size_t length) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixRWFile::PunchHole", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     if (fallocate(fd_, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, offset, length) < 0) {
       return IOError(filename_, errno);
     }
     return Status::OK();
   }
 
-  virtual Status Flush(FlushMode mode, uint64_t offset, size_t length) override {
+  virtual Status Flush(FlushMode mode, uint64_t offset, size_t length) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixRWFile::Flush", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     int flags = SYNC_FILE_RANGE_WRITE;
     if (mode == FLUSH_SYNC) {
       flags |= SYNC_FILE_RANGE_WAIT_AFTER;
@@ -549,21 +556,26 @@ class PosixRWFile : public RWFile {
     return Status::OK();
   }
 
-  virtual Status Sync() override {
+  virtual Status Sync() OVERRIDE {
+    if (!pending_sync_.CompareAndSwap(true, false)) {
+      return Status::OK();
+    }
+
 //    TRACE_EVENT1("io", "PosixRWFile::Sync", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     LOG_SLOW_EXECUTION(WARNING, 1000, Substitute("sync call for $0", filename())) {
-      if (pending_sync_) {
-        pending_sync_ = false;
-        RETURN_NOT_OK(DoSync(fd_, filename_));
-      }
+      RETURN_NOT_OK(DoSync(fd_, filename_));
     }
     return Status::OK();
   }
 
-  virtual Status Close() override {
+  virtual Status Close() OVERRIDE {
+    if (closed_) {
+      return Status::OK();
+    }
+
 //    TRACE_EVENT1("io", "PosixRWFile::Close", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     Status s;
 
     if (sync_on_close_) {
@@ -579,13 +591,13 @@ class PosixRWFile : public RWFile {
       }
     }
 
-    fd_ = -1;
+    closed_ = true;
     return s;
   }
 
-  virtual Status Size(uint64_t* size) const override {
+  virtual Status Size(uint64_t* size) const OVERRIDE {
 //    TRACE_EVENT1("io", "PosixRWFile::Size", "path", filename_);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     struct stat st;
     if (fstat(fd_, &st) == -1) {
       return IOError(filename_, errno);
@@ -594,19 +606,21 @@ class PosixRWFile : public RWFile {
     return Status::OK();
   }
 
-  virtual const string& filename() const override {
+  virtual string filename() const OVERRIDE {
     return filename_;
   }
 
  private:
   const std::string filename_;
-  int fd_;
-  bool sync_on_close_;
-  bool pending_sync_;
+  const int fd_;
+  const bool sync_on_close_;
+
+  AtomicBool pending_sync_;
+  bool closed_;
 };
 
-static int LockOrUnlock(int fd, bool lock) {
-//  ThreadRestrictions::AssertIOAllowed();
+int LockOrUnlock(int fd, bool lock) {
+  ThreadRestrictions::AssertIOAllowed();
   errno = 0;
   struct flock f;
   memset(&f, 0, sizeof(f));
@@ -631,9 +645,9 @@ class PosixEnv : public Env {
   }
 
   virtual Status NewSequentialFile(const std::string& fname,
-                                   gscoped_ptr<SequentialFile>* result) override {
+                                   unique_ptr<SequentialFile>* result) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::NewSequentialFile", "path", fname);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     FILE* f = fopen(fname.c_str(), "r");
     if (f == nullptr) {
       return IOError(fname, errno);
@@ -644,15 +658,15 @@ class PosixEnv : public Env {
   }
 
   virtual Status NewRandomAccessFile(const std::string& fname,
-                                     gscoped_ptr<RandomAccessFile>* result) override {
+                                     unique_ptr<RandomAccessFile>* result) OVERRIDE {
     return NewRandomAccessFile(RandomAccessFileOptions(), fname, result);
   }
 
-  virtual Status NewRandomAccessFile(const RandomAccessFileOptions&  /* opts */,
+  virtual Status NewRandomAccessFile(const RandomAccessFileOptions& opts,
                                      const std::string& fname,
-                                     gscoped_ptr<RandomAccessFile>* result) override {
+                                     unique_ptr<RandomAccessFile>* result) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::NewRandomAccessFile", "path", fname);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     int fd = open(fname.c_str(), O_RDONLY);
     if (fd < 0) {
       return IOError(fname, errno);
@@ -663,13 +677,13 @@ class PosixEnv : public Env {
   }
 
   virtual Status NewWritableFile(const std::string& fname,
-                                 gscoped_ptr<WritableFile>* result) override {
+                                 unique_ptr<WritableFile>* result) OVERRIDE {
     return NewWritableFile(WritableFileOptions(), fname, result);
   }
 
   virtual Status NewWritableFile(const WritableFileOptions& opts,
                                  const std::string& fname,
-                                 gscoped_ptr<WritableFile>* result) override {
+                                 unique_ptr<WritableFile>* result) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::NewWritableFile", "path", fname);
     int fd;
     RETURN_NOT_OK(DoOpen(fname, opts.mode, &fd));
@@ -679,7 +693,7 @@ class PosixEnv : public Env {
   virtual Status NewTempWritableFile(const WritableFileOptions& opts,
                                      const std::string& name_template,
                                      std::string* created_filename,
-                                     gscoped_ptr<WritableFile>* result) override {
+                                     unique_ptr<WritableFile>* result) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::NewTempWritableFile", "template", name_template);
     int fd;
     string tmp_filename;
@@ -690,13 +704,13 @@ class PosixEnv : public Env {
   }
 
   virtual Status NewRWFile(const string& fname,
-                           gscoped_ptr<RWFile>* result) override {
+                           unique_ptr<RWFile>* result) OVERRIDE {
     return NewRWFile(RWFileOptions(), fname, result);
   }
 
   virtual Status NewRWFile(const RWFileOptions& opts,
                            const string& fname,
-                           gscoped_ptr<RWFile>* result) override {
+                           unique_ptr<RWFile>* result) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::NewRWFile", "path", fname);
     int fd;
     RETURN_NOT_OK(DoOpen(fname, opts.mode, &fd));
@@ -705,7 +719,7 @@ class PosixEnv : public Env {
   }
 
   virtual Status NewTempRWFile(const RWFileOptions& opts, const std::string& name_template,
-                               std::string* created_filename, gscoped_ptr<RWFile>* res) override {
+                               std::string* created_filename, unique_ptr<RWFile>* res) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::NewTempRWFile", "template", name_template);
     int fd;
     RETURN_NOT_OK(MkTmpFile(name_template, &fd, created_filename));
@@ -713,16 +727,16 @@ class PosixEnv : public Env {
     return Status::OK();
   }
 
-  virtual bool FileExists(const std::string& fname) override {
+  virtual bool FileExists(const std::string& fname) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::FileExists", "path", fname);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     return access(fname.c_str(), F_OK) == 0;
   }
 
   virtual Status GetChildren(const std::string& dir,
-                             std::vector<std::string>* result) override {
+                             std::vector<std::string>* result) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::GetChildren", "path", dir);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     result->clear();
     DIR* d = opendir(dir.c_str());
     if (d == nullptr) {
@@ -737,9 +751,9 @@ class PosixEnv : public Env {
     return Status::OK();
   }
 
-  virtual Status DeleteFile(const std::string& fname) override {
+  virtual Status DeleteFile(const std::string& fname) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::DeleteFile", "path", fname);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     Status result;
     if (unlink(fname.c_str()) != 0) {
       result = IOError(fname, errno);
@@ -747,9 +761,9 @@ class PosixEnv : public Env {
     return result;
   };
 
-  virtual Status CreateDir(const std::string& name) override {
+  virtual Status CreateDir(const std::string& name) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::CreateDir", "path", name);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     Status result;
     if (mkdir(name.c_str(), 0755) != 0) {
       result = IOError(name, errno);
@@ -757,9 +771,9 @@ class PosixEnv : public Env {
     return result;
   };
 
-  virtual Status DeleteDir(const std::string& name) override {
+  virtual Status DeleteDir(const std::string& name) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::DeleteDir", "path", name);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     Status result;
     if (rmdir(name.c_str()) != 0) {
       result = IOError(name, errno);
@@ -767,9 +781,9 @@ class PosixEnv : public Env {
     return result;
   };
 
-  virtual Status SyncDir(const std::string& dirname) override {
+  virtual Status SyncDir(const std::string& dirname) OVERRIDE {
 //    TRACE_EVENT1("io", "SyncDir", "path", dirname);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     if (FLAGS_never_fsync) return Status::OK();
     int dir_fd;
     if ((dir_fd = open(dirname.c_str(), O_DIRECTORY|O_RDONLY)) == -1) {
@@ -782,14 +796,14 @@ class PosixEnv : public Env {
     return Status::OK();
   }
 
-  virtual Status DeleteRecursively(const std::string &name) override {
+  virtual Status DeleteRecursively(const std::string &name) OVERRIDE {
     return Walk(name, POST_ORDER, base::Bind(&PosixEnv::DeleteRecursivelyCb,
                                        base::Unretained(this)));
   }
 
-  virtual Status GetFileSize(const std::string& fname, uint64_t* size) override {
+  virtual Status GetFileSize(const std::string& fname, uint64_t* size) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::GetFileSize", "path", fname);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     Status s;
     struct stat sbuf;
     if (stat(fname.c_str(), &sbuf) != 0) {
@@ -800,9 +814,9 @@ class PosixEnv : public Env {
     return s;
   }
 
-  virtual Status GetFileSizeOnDisk(const std::string& fname, uint64_t* size) override {
+  virtual Status GetFileSizeOnDisk(const std::string& fname, uint64_t* size) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::GetFileSizeOnDisk", "path", fname);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     Status s;
     struct stat sbuf;
     if (stat(fname.c_str(), &sbuf) != 0) {
@@ -819,7 +833,7 @@ class PosixEnv : public Env {
   }
 
   virtual Status GetFileSizeOnDiskRecursively(const string& root,
-                                              uint64_t* bytes_used) override {
+                                              uint64_t* bytes_used) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::GetFileSizeOnDiskRecursively", "path", root);
     uint64_t total = 0;
     RETURN_NOT_OK(Walk(root, Env::PRE_ORDER,
@@ -829,9 +843,9 @@ class PosixEnv : public Env {
     return Status::OK();
   }
 
-  virtual Status GetBlockSize(const string& fname, uint64_t* block_size) override {
+  virtual Status GetBlockSize(const string& fname, uint64_t* block_size) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::GetBlockSize", "path", fname);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     Status s;
     struct stat sbuf;
     if (stat(fname.c_str(), &sbuf) != 0) {
@@ -844,7 +858,7 @@ class PosixEnv : public Env {
 
   // Local convenience function for safely running statvfs().
   static Status StatVfs(const string& path, struct statvfs* buf) {
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     int ret;
     RETRY_ON_EINTR(ret, statvfs(path.c_str(), buf));
     if (ret == -1) {
@@ -853,7 +867,7 @@ class PosixEnv : public Env {
     return Status::OK();
   }
 
-  virtual Status GetBytesFree(const string& path, int64_t* bytes_free) override {
+  virtual Status GetBytesFree(const string& path, int64_t* bytes_free) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::GetBytesFree", "path", path);
     struct statvfs buf;
     RETURN_NOT_OK(StatVfs(path, &buf));
@@ -865,9 +879,9 @@ class PosixEnv : public Env {
     return Status::OK();
   }
 
-  virtual Status RenameFile(const std::string& src, const std::string& target) override {
+  virtual Status RenameFile(const std::string& src, const std::string& target) OVERRIDE {
 //    TRACE_EVENT2("io", "PosixEnv::RenameFile", "src", src, "dst", target);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     Status result;
     if (rename(src.c_str(), target.c_str()) != 0) {
       result = IOError(src, errno);
@@ -875,9 +889,9 @@ class PosixEnv : public Env {
     return result;
   }
 
-  virtual Status LockFile(const std::string& fname, FileLock** lock) override {
+  virtual Status LockFile(const std::string& fname, FileLock** lock) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::LockFile", "path", fname);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     *lock = nullptr;
     Status result;
     int fd = open(fname.c_str(), O_RDWR | O_CREAT, 0644);
@@ -894,9 +908,9 @@ class PosixEnv : public Env {
     return result;
   }
 
-  virtual Status UnlockFile(FileLock* lock) override {
+  virtual Status UnlockFile(FileLock* lock) OVERRIDE {
 //    TRACE_EVENT0("io", "PosixEnv::UnlockFile");
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     PosixFileLock* my_lock = reinterpret_cast<PosixFileLock*>(lock);
     Status result;
     if (LockOrUnlock(my_lock->fd_, false) == -1) {
@@ -907,7 +921,7 @@ class PosixEnv : public Env {
     return result;
   }
 
-  virtual Status GetTestDirectory(std::string* result) override {
+  virtual Status GetTestDirectory(std::string* result) OVERRIDE {
     string dir;
     const char* env = getenv("TEST_TMPDIR");
     if (env && env[0] != '\0') {
@@ -923,7 +937,7 @@ class PosixEnv : public Env {
     return Canonicalize(dir, result);
   }
 
-  virtual uint64_t gettid() override {
+  virtual uint64_t gettid() OVERRIDE {
     // Platform-independent thread ID.  We can't use pthread_self here,
     // because that function returns a totally opaque ID, which can't be
     // compared via normal means.
@@ -933,26 +947,26 @@ class PosixEnv : public Env {
     return thread_local_id;
   }
 
-  virtual uint64_t NowMicros() override {
+  virtual uint64_t NowMicros() OVERRIDE {
     struct timeval tv;
     gettimeofday(&tv, nullptr);
     return static_cast<uint64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
   }
 
-  virtual void SleepForMicroseconds(int micros) override {
-//    ThreadRestrictions::AssertWaitAllowed();
+  virtual void SleepForMicroseconds(int micros) OVERRIDE {
+    ThreadRestrictions::AssertWaitAllowed();
     SleepFor(MonoDelta::FromMicroseconds(micros));
   }
 
-  virtual Status GetExecutablePath(string* path) override {
+  virtual Status GetExecutablePath(string* path) OVERRIDE {
     uint32_t size = 64;
     uint32_t len = 0;
     while (true) {
-      gscoped_ptr<char[]> buf(new char[size]);
+      unique_ptr<char[]> buf(new char[size]);
       int rc = readlink("/proc/self/exe", buf.get(), size);
       if (rc == -1) {
         return IOError("Unable to determine own executable path", errno);
-      } else if ((uint32_t)rc >= size) {
+      } else if (rc >= size) {
         // The buffer wasn't large enough
         size *= 2;
         continue;
@@ -965,9 +979,9 @@ class PosixEnv : public Env {
     return Status::OK();
   }
 
-  virtual Status IsDirectory(const string& path, bool* is_dir) override {
+  virtual Status IsDirectory(const string& path, bool* is_dir) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::IsDirectory", "path", path);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     Status s;
     struct stat sbuf;
     if (stat(path.c_str(), &sbuf) != 0) {
@@ -978,9 +992,9 @@ class PosixEnv : public Env {
     return s;
   }
 
-  virtual Status Walk(const string& root, DirectoryOrder order, const WalkCallback& cb) override {
+  virtual Status Walk(const string& root, DirectoryOrder order, const WalkCallback& cb) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::Walk", "path", root);
-//    ThreadRestrictions::AssertIOAllowed();
+    ThreadRestrictions::AssertIOAllowed();
     // Some sanity checks
     CHECK_NE(root, "/");
     CHECK_NE(root, "./");
@@ -989,11 +1003,11 @@ class PosixEnv : public Env {
 
     // FTS requires a non-const copy of the name. strdup it and free() when
     // we leave scope.
-    gscoped_ptr<char, base::FreeDeleter> name_dup(strdup(root.c_str()));
+    unique_ptr<char, base::FreeDeleter> name_dup(strdup(root.c_str()));
     char *(paths[]) = { name_dup.get(), nullptr };
 
     // FTS_NOCHDIR is important here to make this thread-safe.
-    gscoped_ptr<FTS, FtsCloser> tree(
+    unique_ptr<FTS, FtsCloser> tree(
         fts_open(paths, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nullptr));
     if (!tree.get()) {
       return IOError(root, errno);
@@ -1047,10 +1061,10 @@ class PosixEnv : public Env {
     return Status::OK();
   }
 
-  virtual Status Canonicalize(const string& path, string* result) override {
+  virtual Status Canonicalize(const string& path, string* result) OVERRIDE {
 //    TRACE_EVENT1("io", "PosixEnv::Canonicalize", "path", path);
-//    ThreadRestrictions::AssertIOAllowed();
-    gscoped_ptr<char[], base::FreeDeleter> r(realpath(path.c_str(), nullptr));
+    ThreadRestrictions::AssertIOAllowed();
+    unique_ptr<char[], base::FreeDeleter> r(realpath(path.c_str(), nullptr));
     if (!r) {
       return IOError(path, errno);
     }
@@ -1058,7 +1072,7 @@ class PosixEnv : public Env {
     return Status::OK();
   }
 
-  virtual Status GetTotalRAMBytes(int64_t* ram) override {
+  virtual Status GetTotalRAMBytes(int64_t* ram) OVERRIDE {
     struct sysinfo info;
     if (sysinfo(&info) < 0) {
       return IOError("sysinfo() failed", errno);
@@ -1068,7 +1082,7 @@ class PosixEnv : public Env {
   }
 
  private:
-  // gscoped_ptr Deleter implementation for fts_close
+  // unique_ptr Deleter implementation for fts_close
   struct FtsCloser {
     void operator()(FTS *fts) const {
       if (fts) { fts_close(fts); }
@@ -1076,8 +1090,8 @@ class PosixEnv : public Env {
   };
 
   Status MkTmpFile(const string& name_template, int* fd, string* created_filename) {
-//    ThreadRestrictions::AssertIOAllowed();
-    gscoped_ptr<char[]> fname(new char[name_template.size() + 1]);
+    ThreadRestrictions::AssertIOAllowed();
+    unique_ptr<char[]> fname(new char[name_template.size() + 1]);
     ::snprintf(fname.get(), name_template.size() + 1, "%s", name_template.c_str());
     int created_fd = mkstemp(fname.get());
     if (created_fd < 0) {
@@ -1092,7 +1106,7 @@ class PosixEnv : public Env {
   Status InstantiateNewWritableFile(const std::string& fname,
                                     int fd,
                                     const WritableFileOptions& opts,
-                                    gscoped_ptr<WritableFile>* result) {
+                                    unique_ptr<WritableFile>* result) {
     uint64_t file_size = 0;
     if (opts.mode == OPEN_EXISTING) {
       RETURN_NOT_OK(GetFileSize(fname, &file_size));

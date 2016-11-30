@@ -3,8 +3,11 @@
 #ifndef KUDU_UTIL_PB_UTIL_INTERNAL_H
 #define KUDU_UTIL_PB_UTIL_INTERNAL_H
 
+#include <memory>
+
 #include <glog/logging.h>
 #include <google/protobuf/io/zero_copy_stream.h>
+
 #include "ant/util/env.h"
 
 namespace ant {
@@ -51,7 +54,7 @@ class SequentialFileFileInputStream : public google::protobuf::io::ZeroCopyInput
   size_t buffer_used_;
   size_t buffer_offset_;
   const size_t buffer_size_;
-  gscoped_ptr<uint8_t[]> buffer_;
+  std::unique_ptr<uint8_t[]> buffer_;
 
   size_t total_read_;
   SequentialFile *rfile_;
@@ -98,7 +101,7 @@ class WritableFileOutputStream : public google::protobuf::io::ZeroCopyOutputStre
 
   size_t buffer_offset_;
   const size_t buffer_size_;
-  gscoped_ptr<uint8_t[]> buffer_;
+  std::unique_ptr<uint8_t[]> buffer_;
 
   size_t flushed_;
   WritableFile *wfile_;

@@ -4,8 +4,10 @@
 #include <sys/types.h>
 
 #include <iomanip>
+#include <memory>
 #include <ostream>
 #include <string>
+
 #include <zlib.h>
 
 #include "ant/base/strings/numbers.h"
@@ -14,12 +16,13 @@
 #include "ant/util/env.h"
 #include "ant/util/net/net_util.h"
 #include "ant/util/path_util.h"
-//#include "ant/util/thread_restrictions.h"
+#include "ant/util/thread_restrictions.h"
 #include "ant/util/user.h"
 
 using std::ostringstream;
 using std::setw;
 using std::string;
+using std::unique_ptr;
 using strings::Substitute;
 
 static const int kDefaultSizeLimitBytes = 64 * 1024 * 1024; // 64MB
@@ -198,7 +201,7 @@ class ScopedGzipCloser {
 // blocked. Implementing it using the zlib stream APIs isn't too much code
 // and is less likely to be problematic.
 Status RollingLog::CompressFile(const std::string& path) const {
-  gscoped_ptr<SequentialFile> in_file;
+  unique_ptr<SequentialFile> in_file;
   RETURN_NOT_OK_PREPEND(env_->NewSequentialFile(path, &in_file),
                         "Unable to open input file to compress");
 

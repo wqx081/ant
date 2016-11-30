@@ -68,6 +68,7 @@ using std::initializer_list;
 using std::ostream;
 using std::shared_ptr;
 using std::string;
+using std::unique_ptr;
 using std::unordered_set;
 using std::vector;
 using strings::Substitute;
@@ -86,7 +87,7 @@ std::ostream& operator<< (std::ostream& os, const ant::pb_util::FileState& state
 namespace ant {
 namespace pb_util {
 
-static const char* const kTmpTemplateSuffix = ".tmp.XXXXXX";
+static const char* const kTmpTemplateSuffix = ".XXXXXX";
 
 // Protobuf container constants.
 static const uint32_t kPBContainerInvalidVersion = 0;
@@ -185,7 +186,7 @@ Status NonShortRead<RWFile>(RWFile* file, uint64_t offset, uint64_t length,
 template<typename ReadableFileType>
 Status ValidateAndReadData(ReadableFileType* reader, uint64_t file_size,
                            uint64_t* offset, uint64_t length,
-                           Slice* result, gscoped_ptr<uint8_t[]>* scratch) {
+                           Slice* result, unique_ptr<uint8_t[]>* scratch) {
   // Validate the read length using the file size.
   if (*offset + length > file_size) {
     return Status::Incomplete("File size not large enough to be valid",
@@ -198,7 +199,7 @@ Status ValidateAndReadData(ReadableFileType* reader, uint64_t file_size,
 
   // Perform the read.
   Slice s;
-  gscoped_ptr<uint8_t[]> local_scratch(new uint8_t[length]);
+  unique_ptr<uint8_t[]> local_scratch(new uint8_t[length]);
   RETURN_NOT_OK(NonShortRead(reader, *offset, length, &s, local_scratch.get()));
   CHECK_EQ(length, s.size()) // Should never trigger due to contract with reader APIs.
       << Substitute("Unexpected short read: Proto container file $0: Tried to read $1 bytes "
@@ -225,10 +226,10 @@ Status ParseAndCompareChecksum(const uint8_t* checksum_buf,
                                const initializer_list<Slice>& slices) {
   uint32_t written_checksum = DecodeFixed32(checksum_buf);
   uint64_t actual_checksum = 0;
-  //Crc* crc32c = crc::GetCrc32cInstance();
+  //Crc* crc32c = crc32::GetCrc32cInstance();
   for (Slice s : slices) {
     //crc32c->Compute(s.data(), s.size(), &actual_checksum);
-    actual_checksum = ant::crc32c::Value((const char *)s.data(), s.size());
+    actual_checksum = ant::crc32c::Crc32c((const char *)s.data(), s.size());
   }
   if (PREDICT_FALSE(actual_checksum != written_checksum)) {
     return Status::Corruption(Substitute("Checksum does not match. Expected: $0. Actual: $1",
@@ -256,7 +257,7 @@ Status ReadPBStartingAt(ReadableFileType* reader, int version, uint64_t* offset,
   uint64_t length_buflen = (version == 1) ? sizeof(uint32_t)
                                           : sizeof(uint32_t) + kPBContainerChecksumLen;
   Slice len_and_cksum_slice;
-  gscoped_ptr<uint8_t[]> length_scratch;
+  unique_ptr<uint8_t[]> length_scratch;
   RETURN_NOT_OK_PREPEND(ValidateAndReadData(reader, file_size, &tmp_offset, length_buflen,
                                             &len_and_cksum_slice, &length_scratch),
                         Substitute("Could not read data length from proto container file $0 "
@@ -275,7 +276,7 @@ Status ReadPBStartingAt(ReadableFileType* reader, int version, uint64_t* offset,
   // Read body and checksum into buffer for checksum & parsing.
   uint64_t data_and_cksum_buflen = data_length + kPBContainerChecksumLen;
   Slice body_and_cksum_slice;
-  gscoped_ptr<uint8_t[]> body_scratch;
+  unique_ptr<uint8_t[]> body_scratch;
   RETURN_NOT_OK_PREPEND(ValidateAndReadData(reader, file_size, &tmp_offset, data_and_cksum_buflen,
                                             &body_and_cksum_slice, &body_scratch),
                         Substitute("Could not read PB message data from proto container file $0 "
@@ -342,7 +343,7 @@ Status ParsePBFileHeader(ReadableFileType* reader, uint64_t* offset, int* versio
   // minimum number of bytes required for a V1 format data record.
   uint64_t tmp_offset = *offset;
   Slice header;
-  gscoped_ptr<uint8_t[]> scratch;
+  unique_ptr<uint8_t[]> scratch;
   RETURN_NOT_OK_PREPEND(ValidateAndReadData(reader, file_size, &tmp_offset, kPBContainerV2HeaderLen,
                                             &header, &scratch),
                         Substitute("Could not read header for proto container file $0",
@@ -444,10 +445,10 @@ Status ParseFromArray(MessageLite* msg, const uint8_t* data, uint32_t length) {
 Status WritePBToPath(Env* env, const std::string& path,
                      const MessageLite& msg,
                      SyncMode sync) {
-  const string tmp_template = path + kTmpTemplateSuffix;
+  const string tmp_template = path + kTmpInfix + kTmpTemplateSuffix;
   string tmp_path;
 
-  gscoped_ptr<WritableFile> file;
+  unique_ptr<WritableFile> file;
   RETURN_NOT_OK(env->NewTempWritableFile(WritableFileOptions(), tmp_template, &tmp_path, &file));
   env_util::ScopedFileDeleter tmp_deleter(env, tmp_path);
 
@@ -523,7 +524,7 @@ void TruncateFields(Message* message, int max_len) {
   }
 }
 
-WritablePBContainerFile::WritablePBContainerFile(gscoped_ptr<RWFile> writer)
+WritablePBContainerFile::WritablePBContainerFile(unique_ptr<RWFile> writer)
   : state_(FileState::NOT_INITIALIZED),
     offset_(0),
     version_(kPBContainerDefaultVersion),
@@ -564,7 +565,7 @@ Status WritablePBContainerFile::Init(const Message& msg) {
 
   // Versions >= 2: Checksum the magic and version.
   if (version_ >= 2) {
-    uint32_t header_checksum = ant::crc32c::Crc32c((const char *)buf.data(), offset);
+    uint32_t header_checksum = crc32c::Crc32c((const char *)buf.data(), offset);
     InlineEncodeFixed32(buf.data() + offset, header_checksum);
     offset += sizeof(uint32_t);
   }
@@ -738,7 +739,7 @@ void WritablePBContainerFile::PopulateDescriptorSet(
   all_descs.Swap(output);
 }
 
-ReadablePBContainerFile::ReadablePBContainerFile(gscoped_ptr<RandomAccessFile> reader)
+ReadablePBContainerFile::ReadablePBContainerFile(unique_ptr<RandomAccessFile> reader)
   : state_(FileState::NOT_INITIALIZED),
     version_(kPBContainerInvalidVersion),
     offset_(0),
@@ -796,7 +797,7 @@ Status ReadablePBContainerFile::Dump(ostream* os, bool oneline) {
         "Descriptor $0 referenced in container file not supported",
         pb_type()));
   }
-  gscoped_ptr<Message> msg(prototype->New());
+  unique_ptr<Message> msg(prototype->New());
 
   // Dump each message in the container file.
   int count = 0;
@@ -833,7 +834,7 @@ uint64_t ReadablePBContainerFile::offset() const {
 }
 
 Status ReadPBContainerFromPath(Env* env, const std::string& path, Message* msg) {
-  gscoped_ptr<RandomAccessFile> file;
+  unique_ptr<RandomAccessFile> file;
   RETURN_NOT_OK(env->NewRandomAccessFile(path, &file));
 
   ReadablePBContainerFile pb_file(std::move(file));
@@ -846,20 +847,16 @@ Status WritePBContainerToPath(Env* env, const std::string& path,
                               const Message& msg,
                               CreateMode create,
                               SyncMode sync) {
-#if 0
-  TRACE_EVENT2("io", "WritePBContainerToPath",
-               "path", path,
-               "msg_type", msg.GetTypeName());
-#endif
+//  TRACE_EVENT2("io", "WritePBContainerToPath", "path", path, "msg_type", msg.GetTypeName());
 
   if (create == NO_OVERWRITE && env->FileExists(path)) {
     return Status::AlreadyPresent(Substitute("File $0 already exists", path));
   }
 
-  const string tmp_template = path + kTmpTemplateSuffix;
+  const string tmp_template = path + kTmpInfix + kTmpTemplateSuffix;
   string tmp_path;
 
-  gscoped_ptr<RWFile> file;
+  unique_ptr<RWFile> file;
   RETURN_NOT_OK(env->NewTempRWFile(RWFileOptions(), tmp_template, &tmp_path, &file));
   env_util::ScopedFileDeleter tmp_deleter(env, tmp_path);
 
@@ -879,7 +876,6 @@ Status WritePBContainerToPath(Env* env, const std::string& path,
   }
   return Status::OK();
 }
-
 
 } // namespace pb_util
 } // namespace ant

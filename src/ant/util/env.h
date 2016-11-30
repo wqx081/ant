@@ -1,21 +1,13 @@
-// An Env is an interface used by the ant implementation to access
-// operating system functionality like the filesystem etc.  Callers
-// may wish to provide a custom Env object when opening a database to
-// get fine gain control; e.g., to rate limit file system operations.
-//
-// All Env implementations are safe for concurrent access from
-// multiple threads without any external synchronization.
-
 #ifndef STORAGE_LEVELDB_INCLUDE_ENV_H_
 #define STORAGE_LEVELDB_INCLUDE_ENV_H_
 
-#include <stdint.h>
 #include <cstdarg>
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "ant/base/callback_forward.h"
-#include "ant/base/gscoped_ptr.h"
 #include "ant/util/status.h"
 
 namespace ant {
@@ -63,7 +55,7 @@ class Env {
   //
   // The returned file will only be accessed by one thread at a time.
   virtual Status NewSequentialFile(const std::string& fname,
-                                   gscoped_ptr<SequentialFile>* result) = 0;
+                                   std::unique_ptr<SequentialFile>* result) = 0;
 
   // Create a brand new random access read-only file with the
   // specified name.  On success, stores a pointer to the new file in
@@ -73,12 +65,12 @@ class Env {
   //
   // The returned file may be concurrently accessed by multiple threads.
   virtual Status NewRandomAccessFile(const std::string& fname,
-                                     gscoped_ptr<RandomAccessFile>* result) = 0;
+                                     std::unique_ptr<RandomAccessFile>* result) = 0;
 
   // Like the previous NewRandomAccessFile, but allows options to be specified.
   virtual Status NewRandomAccessFile(const RandomAccessFileOptions& opts,
                                      const std::string& fname,
-                                     gscoped_ptr<RandomAccessFile>* result) = 0;
+                                     std::unique_ptr<RandomAccessFile>* result) = 0;
 
   // Create an object that writes to a new file with the specified
   // name.  Deletes any existing file with the same name and creates a
@@ -88,14 +80,14 @@ class Env {
   //
   // The returned file will only be accessed by one thread at a time.
   virtual Status NewWritableFile(const std::string& fname,
-                                 gscoped_ptr<WritableFile>* result) = 0;
+                                 std::unique_ptr<WritableFile>* result) = 0;
 
 
   // Like the previous NewWritableFile, but allows options to be
   // specified.
   virtual Status NewWritableFile(const WritableFileOptions& opts,
                                  const std::string& fname,
-                                 gscoped_ptr<WritableFile>* result) = 0;
+                                 std::unique_ptr<WritableFile>* result) = 0;
 
   // Creates a new WritableFile provided the name_template parameter.
   // The last six characters of name_template must be "XXXXXX" and these are
@@ -108,7 +100,7 @@ class Env {
   virtual Status NewTempWritableFile(const WritableFileOptions& opts,
                                      const std::string& name_template,
                                      std::string* created_filename,
-                                     gscoped_ptr<WritableFile>* result) = 0;
+                                     std::unique_ptr<WritableFile>* result) = 0;
 
   // Creates a new readable and writable file. If a file with the same name
   // already exists on disk, it is deleted.
@@ -116,16 +108,18 @@ class Env {
   // Some of the methods of the new file may be accessed concurrently,
   // while others are only safe for access by one thread at a time.
   virtual Status NewRWFile(const std::string& fname,
-                           gscoped_ptr<RWFile>* result) = 0;
+                           std::unique_ptr<RWFile>* result) = 0;
 
   // Like the previous NewRWFile, but allows options to be specified.
   virtual Status NewRWFile(const RWFileOptions& opts,
                            const std::string& fname,
-                           gscoped_ptr<RWFile>* result) = 0;
+                           std::unique_ptr<RWFile>* result) = 0;
 
   // Same as abovoe for NewTempWritableFile(), but for an RWFile.
-  virtual Status NewTempRWFile(const RWFileOptions& opts, const std::string& name_template,
-                               std::string* created_filename, gscoped_ptr<RWFile>* res) = 0;
+  virtual Status NewTempRWFile(const RWFileOptions& opts,
+                               const std::string& name_template,
+                               std::string* created_filename,
+                               std::unique_ptr<RWFile>* res) = 0;
 
   // Returns true iff the named file exists.
   virtual bool FileExists(const std::string& fname) = 0;
@@ -297,7 +291,7 @@ class SequentialFile {
   virtual Status Skip(uint64_t n) = 0;
 
   // Returns the filename provided when the SequentialFile was constructed.
-  virtual const std::string& filename() const = 0;
+  virtual std::string filename() const = 0;
 };
 
 // A file abstraction for randomly reading the contents of a file.
@@ -322,7 +316,7 @@ class RandomAccessFile {
   virtual Status Size(uint64_t *size) const = 0;
 
   // Returns the filename provided when the RandomAccessFile was constructed.
-  virtual const std::string& filename() const = 0;
+  virtual std::string filename() const = 0;
 
   // Returns the approximate memory usage of this RandomAccessFile including
   // the object itself.
@@ -394,7 +388,7 @@ class WritableFile {
   virtual uint64_t Size() const = 0;
 
   // Returns the filename provided when the WritableFile was constructed.
-  virtual const std::string& filename() const = 0;
+  virtual std::string filename() const = 0;
 
  private:
   // No copying allowed
@@ -419,8 +413,10 @@ struct RWFileOptions {
 // file offset is ever used; instead, all operations must provide an
 // explicit offset.
 //
-// All "read" operations are safe for concurrent use by multiple threads,
-// but "write" operations must be externally synchronized.
+// All operations are safe for concurrent use by multiple threads (unless
+// noted otherwise) bearing in mind the usual filesystem coherency guarantees
+// (e.g. two threads that write concurrently to the same file offset will
+// probably yield garbage).
 class RWFile {
  public:
   enum FlushMode {
@@ -491,13 +487,15 @@ class RWFile {
 
   // Closes the file, optionally calling Sync() on it if the file was
   // created with the sync_on_close option enabled.
+  //
+  // Not thread-safe.
   virtual Status Close() = 0;
 
   // Retrieves the file's size.
   virtual Status Size(uint64_t* size) const = 0;
 
   // Returns the filename provided when the RWFile was constructed.
-  virtual const std::string& filename() const = 0;
+  virtual std::string filename() const = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(RWFile);
@@ -521,119 +519,6 @@ extern Status WriteStringToFile(Env* env, const Slice& data,
 // A utility routine: read contents of named file into *data
 extern Status ReadFileToString(Env* env, const std::string& fname,
                                faststring* data);
-
-// An implementation of Env that forwards all calls to another Env.
-// May be useful to clients who wish to override just part of the
-// functionality of another Env.
-class EnvWrapper : public Env {
- public:
-  // Initialize an EnvWrapper that delegates all calls to *t
-  explicit EnvWrapper(Env* t) : target_(t) { }
-  virtual ~EnvWrapper();
-
-  // Return the target to which this Env forwards all calls
-  Env* target() const { return target_; }
-
-  // The following text is boilerplate that forwards all methods to target()
-  Status NewSequentialFile(const std::string& f, gscoped_ptr<SequentialFile>* r) override {
-    return target_->NewSequentialFile(f, r);
-  }
-  Status NewRandomAccessFile(const std::string& f,
-                             gscoped_ptr<RandomAccessFile>* r) override {
-    return target_->NewRandomAccessFile(f, r);
-  }
-  Status NewRandomAccessFile(const RandomAccessFileOptions& opts,
-                             const std::string& f,
-                             gscoped_ptr<RandomAccessFile>* r) override {
-    return target_->NewRandomAccessFile(opts, f, r);
-  }
-  Status NewWritableFile(const std::string& f, gscoped_ptr<WritableFile>* r) override {
-    return target_->NewWritableFile(f, r);
-  }
-  Status NewWritableFile(const WritableFileOptions& o,
-                         const std::string& f,
-                         gscoped_ptr<WritableFile>* r) override {
-    return target_->NewWritableFile(o, f, r);
-  }
-  Status NewTempWritableFile(const WritableFileOptions& o, const std::string& t,
-                             std::string* f, gscoped_ptr<WritableFile>* r) override {
-    return target_->NewTempWritableFile(o, t, f, r);
-  }
-  Status NewRWFile(const std::string& f, gscoped_ptr<RWFile>* r) override {
-    return target_->NewRWFile(f, r);
-  }
-  Status NewRWFile(const RWFileOptions& o,
-                   const std::string& f,
-                   gscoped_ptr<RWFile>* r) override {
-    return target_->NewRWFile(o, f, r);
-  }
-  Status NewTempRWFile(const RWFileOptions& o, const std::string& t,
-                       std::string* f, gscoped_ptr<RWFile>* r) override {
-    return target_->NewTempRWFile(o, t, f, r);
-  }
-  bool FileExists(const std::string& f) override { return target_->FileExists(f); }
-  Status GetChildren(const std::string& dir, std::vector<std::string>* r) override {
-    return target_->GetChildren(dir, r);
-  }
-  Status DeleteFile(const std::string& f) override { return target_->DeleteFile(f); }
-  Status CreateDir(const std::string& d) override { return target_->CreateDir(d); }
-  Status SyncDir(const std::string& d) override { return target_->SyncDir(d); }
-  Status DeleteDir(const std::string& d) override { return target_->DeleteDir(d); }
-  Status DeleteRecursively(const std::string& d) override { return target_->DeleteRecursively(d); }
-  Status GetFileSize(const std::string& f, uint64_t* s) override {
-    return target_->GetFileSize(f, s);
-  }
-  Status GetFileSizeOnDisk(const std::string& f, uint64_t* s) override {
-    return target_->GetFileSizeOnDisk(f, s);
-  }
-  Status GetFileSizeOnDiskRecursively(const std::string& root, uint64_t* bytes_used) override {
-    return target_->GetFileSizeOnDiskRecursively(root, bytes_used);
-  }
-  Status GetBlockSize(const std::string& f, uint64_t* s) override {
-    return target_->GetBlockSize(f, s);
-  }
-  Status GetBytesFree(const std::string& path, int64_t* bytes_free) override {
-    return target_->GetBytesFree(path, bytes_free);
-  }
-  Status RenameFile(const std::string& s, const std::string& t) override {
-    return target_->RenameFile(s, t);
-  }
-  Status LockFile(const std::string& f, FileLock** l) override {
-    return target_->LockFile(f, l);
-  }
-  Status UnlockFile(FileLock* l) override { return target_->UnlockFile(l); }
-  virtual Status GetTestDirectory(std::string* path) override {
-    return target_->GetTestDirectory(path);
-  }
-  uint64_t NowMicros() override {
-    return target_->NowMicros();
-  }
-  void SleepForMicroseconds(int micros) override {
-    target_->SleepForMicroseconds(micros);
-  }
-  uint64_t gettid() override {
-    return target_->gettid();
-  }
-  Status GetExecutablePath(std::string* path) override {
-    return target_->GetExecutablePath(path);
-  }
-  Status IsDirectory(const std::string& path, bool* is_dir) override {
-    return target_->IsDirectory(path, is_dir);
-  }
-  Status Walk(const std::string& root,
-              DirectoryOrder order,
-              const WalkCallback& cb) override {
-    return target_->Walk(root, order, cb);
-  }
-  Status Canonicalize(const std::string& path, std::string* result) override {
-    return target_->Canonicalize(path, result);
-  }
-  Status GetTotalRAMBytes(int64_t* ram) override {
-    return target_->GetTotalRAMBytes(ram);
-  }
- private:
-  Env* target_;
-};
 
 }  // namespace ant
 

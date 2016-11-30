@@ -1,9 +1,9 @@
 #ifndef KUDU_UTIL_ROLLING_LOG_H
 #define KUDU_UTIL_ROLLING_LOG_H
 
+#include <memory>
 #include <string>
 
-#include "ant/base/gscoped_ptr.h"
 #include "ant/base/macros.h"
 #include "ant/base/strings/stringpiece.h"
 #include "ant/util/status.h"
@@ -81,7 +81,7 @@ class RollingLog {
 
   int64_t size_limit_bytes_;
 
-  gscoped_ptr<WritableFile> file_;
+  std::unique_ptr<WritableFile> file_;
   bool compress_after_close_;
 
   DISALLOW_COPY_AND_ASSIGN(RollingLog);

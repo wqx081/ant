@@ -1,5 +1,10 @@
 #include "ant/util/env.h"
+
+#include <memory>
+
 #include "ant/util/faststring.h"
+
+using std::unique_ptr;
 
 namespace ant {
 
@@ -24,7 +29,7 @@ FileLock::~FileLock() {
 static Status DoWriteStringToFile(Env* env, const Slice& data,
                                   const std::string& fname,
                                   bool should_sync) {
-  gscoped_ptr<WritableFile> file;
+  unique_ptr<WritableFile> file;
   Status s = env->NewWritableFile(fname, &file);
   if (!s.ok()) {
     return s;
@@ -57,13 +62,13 @@ Status WriteStringToFileSync(Env* env, const Slice& data,
 
 Status ReadFileToString(Env* env, const std::string& fname, faststring* data) {
   data->clear();
-  gscoped_ptr<SequentialFile> file;
+  unique_ptr<SequentialFile> file;
   Status s = env->NewSequentialFile(fname, &file);
   if (!s.ok()) {
     return s;
   }
   static const int kBufferSize = 8192;
-  gscoped_ptr<uint8_t[]> scratch(new uint8_t[kBufferSize]);
+  unique_ptr<uint8_t[]> scratch(new uint8_t[kBufferSize]);
   while (true) {
     Slice fragment;
     s = file->Read(kBufferSize, &fragment, scratch.get());
@@ -76,9 +81,6 @@ Status ReadFileToString(Env* env, const std::string& fname, faststring* data) {
     }
   }
   return s;
-}
-
-EnvWrapper::~EnvWrapper() {
 }
 
 }  // namespace ant
