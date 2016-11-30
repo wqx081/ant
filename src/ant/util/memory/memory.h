@@ -940,6 +940,6 @@ void StaticQuota<thread_safe>::SetQuota(const size_t quota) {
   quota_ = quota;
 }
 
-}  // namespace kudu
+}  // namespace ant
 
 #endif  // KUDU_UTIL_MEMORY_MEMORY_H_

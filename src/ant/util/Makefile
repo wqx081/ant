@@ -58,6 +58,7 @@ CPP_SOURCES :=  \
 	thread.cc	\
 	threadlocal.cc	\
 	threadpool.cc	\
+	thread_restrictions.cc \
 	thread_stats.cc	\
 	throttler.cc	\
 	trace.cc	\

@@ -23,4 +23,4 @@ void OverwriteWithPattern(char* p, size_t len, StringPiece pattern) {
   }
 }
 
-} // namespace kudu
+} // namespace ant

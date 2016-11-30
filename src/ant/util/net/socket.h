@@ -134,6 +134,6 @@ class Socket {
   DISALLOW_COPY_AND_ASSIGN(Socket);
 };
 
-} // namespace kudu
+} // namespace ant
 
 #endif

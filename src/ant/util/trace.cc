@@ -231,4 +231,4 @@ std::vector<std::pair<StringPiece, scoped_refptr<Trace>>> Trace::ChildTraces() c
   return child_traces_;
 }
 
-} // namespace kudu
+} // namespace ant

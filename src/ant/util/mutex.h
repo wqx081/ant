@@ -101,5 +101,5 @@ class MutexLock {
   DISALLOW_COPY_AND_ASSIGN(MutexLock);
 };
 
-} // namespace kudu
+} // namespace ant
 #endif /* KUDU_UTIL_MUTEX_H */

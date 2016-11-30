@@ -31,4 +31,4 @@ ScopedCleanup<F> MakeScopedCleanup(F f) {
   return ScopedCleanup<F>(f);
 }
 
-} // namespace kudu
+} // namespace ant

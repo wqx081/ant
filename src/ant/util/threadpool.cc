@@ -378,4 +378,4 @@ void ThreadPool::CheckNotPoolThreadUnlocked() {
   }
 }
 
-} // namespace kudu
+} // namespace ant

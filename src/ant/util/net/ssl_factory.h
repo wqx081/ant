@@ -47,4 +47,4 @@ class SSLFactory {
   static std::string GetLastError(int errno_copy);
 };
 
-} // namespace kudu
+} // namespace ant

@@ -44,4 +44,4 @@ void Mutex::Release() {
   DCHECK_EQ(0, rv) << ". " << strerror(rv);
 }
 
-} // namespace kudu
+} // namespace ant

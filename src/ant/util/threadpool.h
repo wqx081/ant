@@ -243,5 +243,5 @@ class ThreadPool {
   DISALLOW_COPY_AND_ASSIGN(ThreadPool);
 };
 
-} // namespace kudu
+} // namespace ant
 #endif

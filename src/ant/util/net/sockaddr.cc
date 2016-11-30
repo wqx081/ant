@@ -117,4 +117,4 @@ Status Sockaddr::LookupHostname(string* hostname) const {
   return Status::OK();
 }
 
-} // namespace kudu
+} // namespace ant

@@ -68,6 +68,6 @@ class JsonReader {
   DISALLOW_COPY_AND_ASSIGN(JsonReader);
 };
 
-} // namespace kudu
+} // namespace ant
 
 #endif // KUDU_UTIL_JSONREADER_H_

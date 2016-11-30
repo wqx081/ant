@@ -10,6 +10,6 @@ namespace ant {
 // reasonably efficient to use.
 void OverwriteWithPattern(char* p, size_t len, StringPiece pattern);
 
-} // namespace kudu
+} // namespace ant
 #endif /* KUDU_MEMORY_OVERWRITE_H */
 

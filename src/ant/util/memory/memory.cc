@@ -315,4 +315,4 @@ void MemoryTrackingBufferAllocator::FreeInternal(Buffer* buffer) {
   mem_tracker_->Release(buffer->size());
 }
 
-}  // namespace kudu
+}  // namespace ant

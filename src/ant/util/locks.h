@@ -250,6 +250,6 @@ class shared_lock {
   DISALLOW_COPY_AND_ASSIGN(shared_lock<Mutex>);
 };
 
-} // namespace kudu
+} // namespace ant
 
 #endif

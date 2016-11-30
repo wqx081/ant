@@ -599,4 +599,4 @@ int Subprocess::ReleaseChildFd(int stdfd) {
   return ret;
 }
 
-} // namespace kudu
+} // namespace ant

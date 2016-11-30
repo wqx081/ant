@@ -276,4 +276,4 @@ void TryRunLsof(const Sockaddr& addr, vector<string>* log) {
   LOG_STRING(WARNING, log) << results;
 }
 
-} // namespace kudu
+} // namespace ant

@@ -19,7 +19,11 @@ CPP_SOURCES := \
 
 CPP_OBJECTS := $(CPP_SOURCES:.cc=.o)
 
-tests := rpc_unittest
+tests := rpc_unittest \
+	reactor_unittest \
+	rpc_stub_unittest \
+	service_queue_unittest \
+	mt_rpc_unittest \
 
 all: $(CPP_OBJECTS) $(tests)
 
@@ -35,6 +39,22 @@ all: $(CPP_OBJECTS) $(tests)
 
 
 rpc_unittest: rpc_unittest.o
+	@echo "  [LINK]  $@"
+	@$(CXX) -o $@ $< $(CPP_OBJECTS) $(ANT_LIBS) $(COMMON_LIBS)
+
+reactor_unittest: reactor_unittest.o
+	@echo "  [LINK]  $@"
+	@$(CXX) -o $@ $< $(CPP_OBJECTS) $(ANT_LIBS) $(COMMON_LIBS)
+
+rpc_stub_unittest: rpc_stub_unittest.o
+	@echo "  [LINK]  $@"
+	@$(CXX) -o $@ $< $(CPP_OBJECTS) $(ANT_LIBS) $(COMMON_LIBS)
+
+service_queue_unittest: service_queue_unittest.o
+	@echo "  [LINK]  $@"
+	@$(CXX) -o $@ $< $(CPP_OBJECTS) $(ANT_LIBS) $(COMMON_LIBS)
+
+mt_rpc_unittest: mt_rpc_unittest.o
 	@echo "  [LINK]  $@"
 	@$(CXX) -o $@ $< $(CPP_OBJECTS) $(ANT_LIBS) $(COMMON_LIBS)
 

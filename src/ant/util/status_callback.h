@@ -43,6 +43,6 @@ typedef base::Callback<Status(void)> StatusClosure;
 // To be used when setting a StatusClosure is optional.
 extern Status DoNothingStatusClosure();
 
-} // namespace kudu
+} // namespace ant
 
 #endif

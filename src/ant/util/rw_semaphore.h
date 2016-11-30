@@ -161,5 +161,5 @@ class rw_semaphore {
   volatile base::subtle::Atomic32 state_;
 };
 
-} // namespace kudu
+} // namespace ant
 #endif /* KUDU_UTIL_RW_SEMAPHORE_H */

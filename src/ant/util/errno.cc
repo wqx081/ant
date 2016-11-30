@@ -16,4 +16,4 @@ void ErrnoToCString(int err, char *buf, size_t buf_len) {
     buf[buf_len - 1] = '\0';
   }
 }
-} // namespace kudu
+} // namespace ant

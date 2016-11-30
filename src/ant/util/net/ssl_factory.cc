@@ -135,4 +135,4 @@ std::unique_ptr<SSLSocket> SSLFactory::CreateSocket(int socket_fd, bool is_serve
   //return new SSLSocket(socket_fd, ssl, is_server);
 }
 
-} // namespace kudu
+} // namespace ant

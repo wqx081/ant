@@ -1,7 +1,3 @@
-// Copyright (c) 2011 The LevelDB Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file. See the AUTHORS file for names of contributors.
-
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -918,7 +914,7 @@ class PosixEnv : public Env {
       dir = env;
     } else {
       char buf[100];
-      snprintf(buf, sizeof(buf), "/tmp/kudutest-%d", static_cast<int>(geteuid()));
+      snprintf(buf, sizeof(buf), "/tmp/anttest-%d", static_cast<int>(geteuid()));
       dir = buf;
     }
     // Directory may already exist
@@ -1158,4 +1154,4 @@ Env* Env::Default() {
   return default_env;
 }
 
-}  // namespace kudu
+}  // namespace ant

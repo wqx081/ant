@@ -63,7 +63,7 @@ class HighWaterMark {
   AtomicInt<int64_t> max_value_;
 };
 
-} // namespace kudu
+} // namespace ant
 #endif /* KUDU_UTIL_HIGH_WATER_MARK_H */
 
 

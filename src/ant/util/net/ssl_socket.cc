@@ -153,4 +153,4 @@ Status SSLSocket::Close() {
   return shutdown_status;
 }
 
-} // namespace kudu
+} // namespace ant

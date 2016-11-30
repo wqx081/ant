@@ -11,6 +11,6 @@ namespace ant {
 // user name is written to user_name.
 Status GetLoggedInUser(std::string* user_name);
 
-} // namespace kudu
+} // namespace ant
 
 #endif // KUDU_UTIL_USER_H

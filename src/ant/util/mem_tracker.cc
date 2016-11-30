@@ -52,7 +52,7 @@ TAG_FLAG(tcmalloc_max_free_bytes_percentage, advanced);
 namespace ant {
 
 // NOTE: this class has been adapted from Impala, so the code style varies
-// somewhat from kudu.
+// somewhat from ant.
 
 using std::deque;
 using std::list;
@@ -578,4 +578,4 @@ shared_ptr<MemTracker> MemTracker::GetRootTracker() {
   return root_tracker;
 }
 
-} // namespace kudu
+} // namespace ant

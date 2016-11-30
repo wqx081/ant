@@ -103,4 +103,4 @@ Status JsonReader::ExtractField(const Value* object,
   return Status::OK();
 }
 
-} // namespace kudu
+} // namespace ant

@@ -86,4 +86,4 @@ inline int64_t TraceMetrics::GetMetric(const char* name) const {
   return FindWithDefault(counters_, name, 0);
 }
 
-} // namespace kudu
+} // namespace ant

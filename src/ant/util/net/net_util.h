@@ -110,5 +110,5 @@ Status HostPortFromSockaddrReplaceWildcard(const Sockaddr& addr, HostPort* hp);
 // is non-NULL (mostly useful for testing).
 void TryRunLsof(const Sockaddr& addr, std::vector<std::string>* log = NULL);
 
-} // namespace kudu
+} // namespace ant
 #endif

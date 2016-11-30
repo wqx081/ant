@@ -3,10 +3,7 @@
 #include <algorithm>
 #include <mutex>
 
-#if 0
-#include "kudu/util/debug-util.h"
-#include "kudu/util/flag_tags.h"
-#endif
+#include "ant/util/debug-util.h"
 
 using std::copy;
 using std::max;
@@ -155,4 +152,4 @@ template class ArenaBase<true>;
 template class ArenaBase<false>;
 
 
-}  // namespace kudu
+}  // namespace ant

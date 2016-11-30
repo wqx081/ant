@@ -376,6 +376,6 @@ class ScopedTrackedConsumption {
   int64_t consumption_;
 };
 
-} // namespace kudu
+} // namespace ant
 
 #endif // KUDU_UTIL_MEM_TRACKER_H

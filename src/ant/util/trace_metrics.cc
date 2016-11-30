@@ -45,4 +45,4 @@ const char* TraceMetrics::InternName(const string& name) {
   return dup;
 }
 
-} // namespace kudu
+} // namespace ant

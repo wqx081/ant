@@ -153,5 +153,5 @@ class Subprocess {
   DISALLOW_COPY_AND_ASSIGN(Subprocess);
 };
 
-} // namespace kudu
+} // namespace ant
 #endif /* KUDU_UTIL_SUBPROCESS_H */

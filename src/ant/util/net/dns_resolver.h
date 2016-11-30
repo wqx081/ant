@@ -43,5 +43,5 @@ class DnsResolver {
   DISALLOW_COPY_AND_ASSIGN(DnsResolver);
 };
 
-} // namespace kudu
+} // namespace ant
 #endif /* KUDU_UTIL_NET_DNS_RESOLVER_H */

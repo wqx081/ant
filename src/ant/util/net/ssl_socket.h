@@ -39,6 +39,6 @@ class SSLSocket : public Socket {
   bool is_server_;
 };
 
-} // namespace kudu
+} // namespace ant
 
 #endif

@@ -59,5 +59,5 @@ class Promise {
   DISALLOW_COPY_AND_ASSIGN(Promise);
 };
 
-} // namespace kudu
+} // namespace ant
 #endif /* KUDU_UTIL_PROMISE_H */

@@ -42,6 +42,6 @@ class Throttler {
   simple_spinlock lock_;
 };
 
-} // namespace kudu
+} // namespace ant
 
 #endif

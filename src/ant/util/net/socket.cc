@@ -511,4 +511,4 @@ Status Socket::SetTimeout(int opt, std::string optname, const MonoDelta& timeout
   return Status::OK();
 }
 
-} // namespace kudu
+} // namespace ant
